@@ -345,7 +345,7 @@
         }
 
         function startTask(taskName) {
-            if (activeTasks[taskName]) return; // Do nothing if already running
+            if (activeTasks[taskName]) return; 
             if (Object.keys(activeTasks).length >= 2) return alert("Maximum 2 concurrent tasks allowed.");
             
             activeTasks[taskName] = { start: Date.now(), notes: [], noteTimes: [], ints: [] };
@@ -370,7 +370,7 @@
             
             let payload = {
                 sessionId: session.id,
-                timestamp: new Date().toISOString(),
+                timestamp: new Date(taskData.start).toISOString(), // Matches Task_Start
                 team: session.team,
                 observer: session.observer,
                 date: session.date,
