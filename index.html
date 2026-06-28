@@ -8,12 +8,12 @@
 
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; background: #f4f4f9; touch-action: manipulation; }
-        .header { background: #2c3e50; color: white; padding: 15px; text-align: center; font-size: 20px; font-weight: bold; position: relative; }
+        .header { background: #2c3e50; color: white; padding: 15px; text-align: center; font-size: 20px; font-weight: bold; }
         .container { padding: 15px; }
         
         .storage-meter { font-size: 12px; color: #7f8c8d; text-align: center; margin-bottom: 15px; font-weight: bold; background: #ecf0f1; padding: 8px; border-radius: 6px; }
         
-        input, select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; background: white; }
+        input[type="text"], input[type="date"] { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; background: white; }
         button { width: 100%; padding: 15px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         
         .start-btn { background: #3498db; color: white; margin-top: 10px; }
@@ -40,14 +40,17 @@
         
         .undo-btn { background: #95a5a6; color: white; width: 100%; margin-bottom: 20px;}
         
-        .note-container { background: #ffffff; border: 2px solid #bdc3c7; border-radius: 8px; padding: 10px; margin-bottom: 20px; }
-        .note-container textarea { width: 100%; height: 80px; padding: 10px; border: none; font-size: 16px; font-family: inherit; resize: none; box-sizing: border-box; background: transparent; }
-        .note-container textarea:focus { outline: none; }
+        .note-container { background: #ffffff; border: 2px solid #bdc3c7; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+        .note-container textarea { width: 100%; height: 80px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; font-family: inherit; resize: none; box-sizing: border-box; background: #f9f9f9; margin-bottom: 10px; }
+        .note-container textarea:focus { outline: none; border-color: #3498db; }
         .log-note-btn { background: #2ecc71; color: white; margin-top: 10px; }
+        
+        .checkbox-group { margin-bottom: 15px; font-size: 15px; background: #f4f4f9; padding: 10px; border-radius: 6px; border: 1px solid #eee; }
+        .checkbox-group label { display: block; margin-bottom: 8px; cursor: pointer; }
+        .checkbox-group input[type="checkbox"] { width: auto; margin-right: 10px; transform: scale(1.2); }
 
         .end-btn { background: #7f8c8d; color: white; margin-top: 10px; margin-bottom: 20px; }
         .clear-btn { background: #bdc3c7; color: #333; margin-top: 20px; font-size: 14px; }
-        .locked { opacity: 0.5; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -63,11 +66,7 @@
         <label>Observer ID</label>
         <input type="text" id="observerId" placeholder="Initials or ID">
         
-        <label>Date</label>
-        <input type="date" id="obsDate">
-        
         <button class="start-btn" id="begin-btn">Begin Session</button>
-        
         <button class="clear-btn" id="clear-btn" onclick="requestClear()">Clear Synced Data</button>
     </div>
 
@@ -80,14 +79,13 @@
         <div class="section-title" id="menu-title">Select Category</div>
         <div class="grid" id="menu-grid"></div>
 
-        <div class="section-title">Interruptions (Applies to Active Tasks)</div>
+        <div class="section-title">Interruptions (Independent Timer)</div>
         <div class="grid" id="int-grid"></div>
 
         <div class="section-title">Log a Note</div>
         <div class="note-container">
-            <select id="note-target">
-                <option value="General">General Session Note</option>
-            </select>
+            <div id="note-targets" class="checkbox-group">
+                </div>
             <textarea id="inline-note" placeholder="Tap here to type a note..."></textarea>
             <button class="log-note-btn" onclick="saveInlineNote()">Log Note</button>
         </div>
@@ -98,6 +96,7 @@
     </div>
 
     <script>
+        // --- ADD YOUR SCRIPT URL HERE ---
         const scriptUrl = "https://script.google.com/macros/s/AKfycbwjHBkzbh--F_MQacQbBJZk6bA9PVL1tpYnZj54yz4McmrC68QlWWpvNZ1fewiUH61l/exec";
         
         const taskHierarchy = {
@@ -108,9 +107,8 @@
         
         const interruptions = ["Visitor Interaction", "Radio Call", "Equipment Issue", "Other"];
 
-        let session = { id: "", team: "", observer: "", date: "" };
+        let session = { id: "", team: "", observer: "" };
         let logs = []; 
-        
         let activeTasks = {}; 
         let activeInterruption = null; 
         
@@ -138,12 +136,12 @@
                     activeTasks = vault.a || {};
                     activeInterruption = vault.i || null;
                     
-                    document.getElementById('session-summary').innerText = `Team: ${session.team}  |  Obs: ${session.observer}  |  Date: ${session.date}`;
+                    document.getElementById('session-summary').innerText = `Team: ${session.team}  |  Obs: ${session.observer}`;
                     document.getElementById('setup').style.display = 'none';
                     document.getElementById('app').style.display = 'block';
                     
                     renderActiveZone();
-                    updateNoteDropdown();
+                    updateNoteTargets();
                     
                     if (activeInterruption) {
                         let btn = document.getElementById('btn-' + activeInterruption.name.replace(/[^a-zA-Z0-9]/g, ''));
@@ -155,7 +153,6 @@
             }
             updateStorageMeter();
         }
-        // -----------------------------
 
         // --- STORAGE METER & CLEARING ---
         function updateStorageMeter() {
@@ -201,13 +198,11 @@
             clearTimeout(clearTimer);
             let unsyncedOnly = logs.filter(item => item.synced === false);
             let deletedCount = logs.length - unsyncedOnly.length;
-            
             logs = unsyncedOnly;
             saveState(); 
             resetClear();
-            alert(`Cleared ${deletedCount} safely backed-up rows. \n${unsyncedOnly.length} pending rows were protected and kept on device.`);
+            alert(`Cleared ${deletedCount} safely backed-up rows. \n${unsyncedOnly.length} pending rows protected.`);
         }
-        // -----------------------------
 
         // --- GOOGLE SYNC ENGINE ---
         async function syncEngine() {
@@ -217,8 +212,7 @@
             for (let item of unsynced) {
                 try {
                     let response = await fetch(scriptUrl, {
-                        method: 'POST',
-                        mode: 'no-cors',
+                        method: 'POST', mode: 'no-cors',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify(item)
                     });
@@ -231,12 +225,9 @@
         }
 
         setInterval(syncEngine, 30000);
-        // -----------------------------
 
         window.onload = () => {
-            document.getElementById('obsDate').valueAsDate = new Date();
             renderCategories();
-
             const intGrid = document.getElementById('int-grid');
             interruptions.forEach(int => {
                 let btn = document.createElement('button');
@@ -252,9 +243,7 @@
 
             const beginBtn = document.getElementById('begin-btn');
             const triggerSession = (e) => {
-                if(e) e.preventDefault(); 
-                document.activeElement.blur(); 
-                startSession();
+                if(e) e.preventDefault(); document.activeElement.blur(); startSession();
             };
             beginBtn.addEventListener('touchstart', triggerSession, {passive: false});
             beginBtn.addEventListener('click', triggerSession);
@@ -287,12 +276,13 @@
             session.id = new Date().toISOString();
             session.team = document.getElementById('teamName').value || "Unknown";
             session.observer = document.getElementById('observerId').value || "Unknown";
-            session.date = document.getElementById('obsDate').value || new Date().toISOString().split('T')[0];
-            document.getElementById('session-summary').innerText = `Team: ${session.team}  |  Obs: ${session.observer}  |  Date: ${session.date}`;
+            
+            document.getElementById('session-summary').innerText = `Team: ${session.team}  |  Obs: ${session.observer}`;
             document.getElementById('setup').style.display = 'none';
             document.getElementById('app').style.display = 'block';
             
             saveState(); 
+            updateNoteTargets();
             clockInterval = setInterval(updateClocks, 1000);
         }
 
@@ -333,14 +323,27 @@
             });
         }
 
-        function updateNoteDropdown() {
-            let select = document.getElementById('note-target');
-            select.innerHTML = `<option value="General">General Session Note</option>`;
+        // Creates dynamic checkboxes based on what is currently running
+        function updateNoteTargets() {
+            let container = document.getElementById('note-targets');
+            container.innerHTML = `<label><input type="checkbox" id="cb-general" value="General" checked> General Session Note</label>`;
+            
+            const uncheckGeneral = `onchange="document.getElementById('cb-general').checked = false;"`;
+            
             Object.keys(activeTasks).forEach(task => {
-                let opt = document.createElement('option');
-                opt.value = task;
-                opt.innerText = `Attach to: ${task}`;
-                select.appendChild(opt);
+                container.innerHTML += `<label><input type="checkbox" class="event-cb" data-type="task" data-name="${task}" value="${activeTasks[task].start}" ${uncheckGeneral}> Attach to Task: ${task}</label>`;
+            });
+            
+            if (activeInterruption) {
+                container.innerHTML += `<label><input type="checkbox" class="event-cb" data-type="interruption" data-name="${activeInterruption.name}" value="${activeInterruption.start}" ${uncheckGeneral}> Attach to Interruption: ${activeInterruption.name}</label>`;
+            }
+
+            // Ensure "General" unchecks other boxes if selected manually
+            document.getElementById('cb-general').addEventListener('change', function() {
+                if(this.checked) {
+                    let boxes = document.querySelectorAll('.event-cb');
+                    boxes.forEach(b => b.checked = false);
+                }
             });
         }
 
@@ -348,10 +351,10 @@
             if (activeTasks[taskName]) return; 
             if (Object.keys(activeTasks).length >= 2) return alert("Maximum 2 concurrent tasks allowed.");
             
-            activeTasks[taskName] = { start: Date.now(), notes: [], noteTimes: [], ints: [] };
+            activeTasks[taskName] = { start: Date.now() };
             
             renderActiveZone();
-            updateNoteDropdown();
+            updateNoteTargets();
             saveState(); 
             
             let currentTitle = document.getElementById('menu-title').innerText;
@@ -362,33 +365,21 @@
             let now = Date.now();
             let taskData = activeTasks[taskName];
             
-            let noteString = taskData.notes.join(" | ");
-            let noteTimeString = (taskData.noteTimes || []).join(" | ");
-            let intTypes = taskData.ints.map(i => i.type).join(" | ");
-            let intStarts = taskData.ints.map(i => new Date(i.start).toISOString()).join(" | ");
-            let intEnds = taskData.ints.map(i => new Date(i.end).toISOString()).join(" | ");
-            
             let payload = {
+                dataType: "task",
                 sessionId: session.id,
-                timestamp: new Date(taskData.start).toISOString(), // Matches Task_Start
+                timestamp: new Date().toISOString(),
                 team: session.team,
-                observer: session.observer,
-                date: session.date,
                 task: taskName,
                 taskStart: new Date(taskData.start).toISOString(),
                 taskEnd: new Date(now).toISOString(),
-                intTypes: intTypes,
-                intStarts: intStarts,
-                intEnds: intEnds,
-                notes: noteString,
-                noteTimestamps: noteTimeString,
                 synced: false
             };
             
             logs.push(payload);
             delete activeTasks[taskName];
             renderActiveZone();
-            updateNoteDropdown();
+            updateNoteTargets();
             saveState(); 
             syncEngine();
             
@@ -435,18 +426,28 @@
             if (activeInterruption) {
                 if (activeInterruption.name !== intName) return alert("End the current interruption first.");
                 
-                let intData = { type: activeInterruption.name, start: activeInterruption.start, end: now };
-                Object.keys(activeTasks).forEach(t => { activeTasks[t].ints.push(intData); });
+                let payload = {
+                    dataType: "interruption",
+                    sessionId: session.id,
+                    team: session.team,
+                    observer: session.observer,
+                    intStart: new Date(activeInterruption.start).toISOString(),
+                    intEnd: new Date(now).toISOString(),
+                    intType: activeInterruption.name,
+                    synced: false
+                };
                 
+                logs.push(payload);
                 btn.classList.remove('active-int');
                 btn.innerText = intName; 
                 activeInterruption = null;
             } else {
-                if(Object.keys(activeTasks).length === 0) return alert("Start a task before logging an interruption.");
                 activeInterruption = { name: intName, start: now };
                 btn.classList.add('active-int');
             }
-            saveState(); 
+            updateNoteTargets();
+            saveState();
+            syncEngine();
         }
 
         function undoActive() {
@@ -455,51 +456,63 @@
             let latest = keys.reduce((a, b) => activeTasks[a].start > activeTasks[b].start ? a : b);
             delete activeTasks[latest];
             renderActiveZone();
-            updateNoteDropdown();
+            updateNoteTargets();
             saveState(); 
         }
 
         function saveInlineNote() {
             let noteInput = document.getElementById('inline-note');
-            let target = document.getElementById('note-target').value;
             let note = noteInput.value.trim();
+            if (!note) return;
+
             let noteTime = new Date().toISOString();
             
-            if (note) {
-                if (target === "General") {
-                    logs.push({
-                        sessionId: session.id, 
-                        timestamp: new Date().toISOString(), 
-                        team: session.team, 
-                        observer: session.observer, 
-                        date: session.date,
-                        task: "General Note", 
-                        taskStart: new Date().toISOString(), 
-                        taskEnd: new Date().toISOString(), 
-                        intTypes: "", 
-                        intStarts: "", 
-                        intEnds: "", 
-                        notes: note, 
-                        noteTimestamps: noteTime, 
-                        synced: false
-                    });
-                } else if (activeTasks[target]) {
-                    activeTasks[target].notes.push(note);
-                    activeTasks[target].noteTimes = activeTasks[target].noteTimes || [];
-                    activeTasks[target].noteTimes.push(noteTime);
+            // Gather all checked boxes
+            let checkedBoxes = document.querySelectorAll('#note-targets input[type="checkbox"]:checked');
+            
+            let eventNames = [];
+            let eventStarts = [];
+            let isGeneral = false;
+
+            checkedBoxes.forEach(box => {
+                if (box.id === 'cb-general') {
+                    isGeneral = true;
+                } else {
+                    eventNames.push(box.getAttribute('data-name'));
+                    eventStarts.push(new Date(parseInt(box.value)).toISOString());
                 }
-                
-                noteInput.value = "";
-                noteInput.placeholder = "✅ Note saved!";
-                setTimeout(() => { noteInput.placeholder = "Tap here to type a note..."; }, 3000);
-                saveState(); 
-                syncEngine(); 
-            }
+            });
+
+            if (checkedBoxes.length === 0) isGeneral = true; // Safety fallback
+
+            let payload = {
+                dataType: "note",
+                sessionId: session.id,
+                team: session.team,
+                observer: session.observer,
+                time: noteTime,
+                noteText: note,
+                associatedEvent: isGeneral ? "" : eventNames.join(" | "),
+                associatedStart: isGeneral ? "" : eventStarts.join(" | "),
+                synced: false
+            };
+            
+            logs.push(payload);
+            noteInput.value = "";
+            noteInput.placeholder = "✅ Note saved!";
+            setTimeout(() => { noteInput.placeholder = "Tap here to type a note..."; }, 3000);
+            
+            // Reset checkboxes
+            let allBoxes = document.querySelectorAll('#note-targets input[type="checkbox"]');
+            allBoxes.forEach(b => b.checked = false);
+            document.getElementById('cb-general').checked = true;
+
             document.activeElement.blur(); 
+            saveState(); 
+            syncEngine(); 
         }
 
         function endSession() {
-            let now = Date.now();
             clearInterval(clockInterval);
 
             if (activeInterruption) toggleInterruption(activeInterruption.name);
@@ -507,7 +520,7 @@
 
             activeTasks = {};
             activeInterruption = null;
-            session = { id: "", team: "", observer: "", date: "" };
+            session = { id: "", team: "", observer: "" };
             
             saveState();
             endArmed = false;
