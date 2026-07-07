@@ -56,8 +56,10 @@
         
         .checkbox-group { margin-bottom: 15px; font-size: 15px; background: #f4f4f9; padding: 10px; border-radius: 6px; border: 1px solid #eee; }
         .checkbox-group label { display: block; margin-bottom: 8px; cursor: pointer; }
-        .checkbox-group input[type="checkbox"] { width: auto; margin-right: 10px; transform: scale(1.2); }
+        .checkbox-group input[type="checkbox"], .checkbox-group input[type="radio"] { width: auto; margin-right: 10px; transform: scale(1.2); }
         .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        
+        .sub-options { margin-left: 25px; border-left: 2px solid #bdc3c7; padding-left: 10px; display: none; margin-top: 5px;}
 
         .end-btn { background: #7f8c8d; color: white; margin-top: 10px; margin-bottom: 20px; }
         .clear-btn { background: #bdc3c7; color: #333; margin-top: 20px; font-size: 14px; }
@@ -105,7 +107,7 @@
         </div>
 
         <div id="kai-ethogram" class="ethogram-container">
-            <div class="etho-title">KAI Active: Ethogram</div>
+            <div class="etho-title">Ethogram</div>
             
             <div class="etho-section">
                 <strong>Animal Behaviour Observed</strong>
@@ -129,11 +131,14 @@
 
             <div class="etho-section">
                 <strong>Environment & Interactions</strong>
-                <div class="checkbox-group checkbox-grid" id="kai-env">
-                    <label><input type="checkbox" value="Novel objects present"> Novel objects present</label>
-                    <label><input type="checkbox" value="Direct contact (Keeper/Animal)"> Direct contact</label>
-                    <label><input type="checkbox" value="Contact Inside Enclosure"> Inside Enclosure</label>
-                    <label><input type="checkbox" value="Contact Outside Enclosure"> Outside Enclosure</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" id="env-novel" value="Novel objects present"> Novel objects present</label>
+                    
+                    <label><input type="checkbox" id="env-contact" onchange="toggleContactOptions()"> Contact</label>
+                    <div id="contact-options" class="sub-options">
+                        <label><input type="radio" name="contactType" value="Direct"> Direct</label>
+                        <label><input type="radio" name="contactType" value="Indirect"> Indirect</label>
+                    </div>
                 </div>
             </div>
             
@@ -148,18 +153,17 @@
     <script>
         const scriptUrl = "https://script.google.com/macros/s/AKfycbwjHBkzbh--F_MQacQbBJZk6bA9PVL1tpYnZj54yz4McmrC68QlWWpvNZ1fewiUH61l/exec";
         
-        // UPDATED HIERARCHY
         const taskHierarchy = {
             "Husbandry": ["Enclosure Cleaning", "Food Prep", "Diet Provision", "Enrichment"],
             "Animal Management": ["Observations", "Training"],
             "Operations": ["Records/Admin", "Human Interaction", "Travel", "Downtime", "Animal Movement"],
             "Health": ["Veterinary Assessment", "Clinical Procedure", "Health Assessment"],
-            "KAI's": [] // Handled via special bypass
+            "KAI's": [] 
         };
         
         const interruptions = ["Visitor Interaction", "Radio Call", "Equipment Issue", "Other"];
 
-        let session = { id: "", team: "", observer: "", mode: "Group" };
+        let session = { id: "", team: "", observer: "", mode: "Group", individual: "" };
         let logs = []; 
         let activeTasks = {}; 
         let activeInterruption = null; 
@@ -185,14 +189,15 @@
                 
                 if (vault.s && vault.s.team) {
                     session = vault.s;
-                    // Ensure mode exists from legacy saves
                     if (!session.mode) session.mode = "Group"; 
+                    if (!session.individual) session.individual = "";
                     
                     activeTasks = vault.a || {};
                     activeInterruption = vault.i || null;
                     
                     document.getElementById('session-summary').innerText = `Team: ${session.team}  |  Obs: ${session.observer}`;
-                    document.getElementById('mode-label').innerHTML = `<strong>${session.mode}</strong> 🔄`;
+                    updateModeUI();
+                    
                     document.getElementById('setup').style.display = 'none';
                     document.getElementById('app').style.display = 'block';
                     
@@ -214,10 +219,46 @@
             updateStorageMeter();
         }
 
+        function updateModeUI() {
+            let label = document.getElementById('mode-label');
+            if (session.mode === "Group") {
+                label.innerHTML = `<strong>Group</strong> 🔄`;
+            } else {
+                label.innerHTML = `<strong>Individual: ${session.individual}</strong> 🔄`;
+            }
+        }
+
         function toggleMode() {
-            session.mode = session.mode === "Group" ? "Individual" : "Group";
-            document.getElementById('mode-label').innerHTML = `<strong>${session.mode}</strong> 🔄`;
-            saveState();
+            if (session.mode === "Group") {
+                if (confirm("Switch to observing a specific individual?")) {
+                    let name = prompt("Enter the name or ID of the keeper:");
+                    if (name && name.trim() !== "") {
+                        session.mode = "Individual";
+                        session.individual = name.trim();
+                        updateModeUI();
+                        saveState();
+                    }
+                }
+            } else {
+                if (confirm("Switch back to Group observation mode?")) {
+                    session.mode = "Group";
+                    session.individual = "";
+                    updateModeUI();
+                    saveState();
+                }
+            }
+        }
+
+        function toggleContactOptions() {
+            const contactCb = document.getElementById('env-contact');
+            const optionsDiv = document.getElementById('contact-options');
+            if (contactCb.checked) {
+                optionsDiv.style.display = "block";
+            } else {
+                optionsDiv.style.display = "none";
+                // clear radios when unchecked
+                document.querySelectorAll('input[name="contactType"]').forEach(r => r.checked = false);
+            }
         }
 
         // --- STORAGE METER & CLEARING ---
@@ -343,9 +384,10 @@
             session.team = document.getElementById('teamName').value || "Unknown";
             session.observer = document.getElementById('observerId').value || "Unknown";
             session.mode = "Group";
+            session.individual = "";
             
             document.getElementById('session-summary').innerText = `Team: ${session.team}  |  Obs: ${session.observer}`;
-            document.getElementById('mode-label').innerHTML = `<strong>${session.mode}</strong> 🔄`;
+            updateModeUI();
             document.getElementById('setup').style.display = 'none';
             document.getElementById('app').style.display = 'block';
             
@@ -364,8 +406,6 @@
                 btn.innerText = category;
                 
                 if (category === "KAI's") {
-                    // Special styling or just direct bind
-                    btn.style.background = '#8e44ad';
                     btn.onclick = () => startKAI();
                 } else {
                     btn.onclick = () => renderSubTasks(category);
@@ -415,7 +455,19 @@
 
             let animal = Array.from(document.querySelectorAll('#kai-animal input:checked')).map(i => i.value);
             let human = Array.from(document.querySelectorAll('#kai-human input:checked')).map(i => i.value);
-            let env = Array.from(document.querySelectorAll('#kai-env input:checked')).map(i => i.value);
+            
+            // Build the Env logic
+            let envArr = [];
+            if(document.getElementById('env-novel').checked) envArr.push("Novel objects present");
+            
+            if(document.getElementById('env-contact').checked) {
+                let contactType = document.querySelector('input[name="contactType"]:checked');
+                if (contactType) {
+                    envArr.push(`Contact (${contactType.value})`);
+                } else {
+                    envArr.push(`Contact (Unspecified)`);
+                }
+            }
             
             let payload = {
                 dataType: "kai_snapshot",
@@ -423,10 +475,11 @@
                 team: session.team,
                 observer: session.observer,
                 obsMode: session.mode,
+                obsIndividual: session.individual,
                 timestamp: new Date().toISOString(),
                 animalBehaviors: animal.join(", "),
                 humanBehaviors: human.join(", "),
-                envInteractions: env.join(", "),
+                envInteractions: envArr.join(", "),
                 synced: false
             };
             
@@ -434,6 +487,8 @@
             
             // Reset boxes
             document.querySelectorAll('#kai-ethogram input[type="checkbox"]').forEach(b => b.checked = false);
+            document.querySelectorAll('#kai-ethogram input[type="radio"]').forEach(r => r.checked = false);
+            document.getElementById('contact-options').style.display = "none";
             
             // Visual confirmation
             let btn = document.querySelector('.etho-btn');
@@ -490,6 +545,7 @@
                 timestamp: new Date().toISOString(),
                 team: session.team,
                 obsMode: session.mode,
+                obsIndividual: session.individual,
                 task: taskName,
                 taskStart: new Date(taskData.start).toISOString(),
                 taskEnd: new Date(now).toISOString(),
@@ -499,7 +555,6 @@
             logs.push(payload);
             delete activeTasks[taskName];
             
-            // Hide KAI Ethogram if KAI task is stopped
             if (taskName === "KAI Session") {
                 document.getElementById('kai-ethogram').style.display = 'none';
             }
@@ -521,7 +576,6 @@
                 btn.className = 'pinned-task';
                 btn.id = 'active-' + task.replace(/[^a-zA-Z0-9]/g, '');
                 
-                // Style KAI Task slightly differently in active zone
                 if(task === "KAI Session") btn.style.background = "#8e44ad";
                 
                 btn.innerHTML = `<strong>${task}</strong><br><span style="font-size:12px; font-weight:normal;" id="clock-${task.replace(/[^a-zA-Z0-9]/g, '')}">00:00</span>`;
@@ -562,6 +616,7 @@
                     team: session.team,
                     observer: session.observer,
                     obsMode: session.mode,
+                    obsIndividual: session.individual,
                     intStart: new Date(activeInterruption.start).toISOString(),
                     intEnd: new Date(now).toISOString(),
                     intType: activeInterruption.name,
@@ -626,6 +681,7 @@
                 team: session.team,
                 observer: session.observer,
                 obsMode: session.mode,
+                obsIndividual: session.individual,
                 time: noteTime,
                 noteText: note,
                 associatedEvent: isGeneral ? "" : eventNames.join(" | "),
@@ -655,7 +711,7 @@
 
             activeTasks = {};
             activeInterruption = null;
-            session = { id: "", team: "", observer: "", mode: "Group" };
+            session = { id: "", team: "", observer: "", mode: "Group", individual: "" };
             
             saveState();
             endArmed = false;
