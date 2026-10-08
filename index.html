@@ -42,10 +42,17 @@
         
         .undo-btn { background: #95a5a6; color: white; width: 100%; margin-bottom: 20px;}
         
-        .note-container { background: #ffffff; border: 2px solid #bdc3c7; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+        .form-container { background: #ffffff; border: 2px solid #bdc3c7; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+        .form-container h4 { margin: 0 0 10px 0; color: #34495e; font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        
+        .beh-label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #555; }
+        .beh-select { margin-bottom: 15px; }
+        .beh-check-row { display: flex; align-items: center; margin-bottom: 15px; font-size: 15px; }
+        .beh-check-row input { width: 20px; height: 20px; margin: 0 10px 0 0; }
+        
         .note-container textarea { width: 100%; height: 80px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; font-family: inherit; resize: none; box-sizing: border-box; background: #f9f9f9; margin-bottom: 10px; }
         .note-container textarea:focus { outline: none; border-color: #3498db; }
-        .log-note-btn { background: #2ecc71; color: white; margin-top: 10px; }
+        .log-btn { background: #2ecc71; color: white; margin-top: 10px; }
         
         .checkbox-group { margin-bottom: 15px; font-size: 15px; background: #f4f4f9; padding: 10px; border-radius: 6px; border: 1px solid #eee; }
         .checkbox-group label { display: block; margin-bottom: 8px; cursor: pointer; }
@@ -59,7 +66,6 @@
 
     <div class="header">Keeper Observations</div>
     
-    <!-- MOVED OUTSIDE THE SETUP SCREEN SO IT IS ALWAYS VISIBLE -->
     <div id="storage-meter" class="storage-meter">Storage: Calculating...</div>
 
     <div id="setup" class="container" style="display: block;">
@@ -97,13 +103,67 @@
         <div class="section-title">Interruptions (Independent Timer)</div>
         <div class="grid" id="int-grid"></div>
 
+        <div class="section-title">Log Behaviour Snapshot</div>
+        <div class="form-container">
+            <h4>Animal Behaviour</h4>
+            <label class="beh-label">Movement / Proximity to Keeper</label>
+            <select id="b-anim-move" class="beh-select">
+                <option value="N/A">Select...</option>
+                <option value="Avoidance">Avoidance</option>
+                <option value="Approach < 0.5m">Approach &lt; 0.5m</option>
+            </select>
+            
+            <label class="beh-label">Vocalisations</label>
+            <select id="b-anim-vocal" class="beh-select">
+                <option value="N/A">Select...</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+            </select>
+            
+            <label class="beh-check-row"><input type="checkbox" id="b-anim-vig"> Vigilance observed</label>
+            <label class="beh-check-row"><input type="checkbox" id="b-anim-vis"> Animal Not Visible</label>
+
+            <h4>Human Behaviour</h4>
+            <label class="beh-label">Speed of Movement</label>
+            <select id="b-hum-speed" class="beh-select">
+                <option value="N/A">Select...</option>
+                <option value="Slow">Slow</option>
+                <option value="Fast">Fast</option>
+            </select>
+            
+            <label class="beh-label">Noise Level</label>
+            <select id="b-hum-noise" class="beh-select">
+                <option value="N/A">Select...</option>
+                <option value="Quiet">Quiet</option>
+                <option value="Loud">Loud</option>
+            </select>
+            
+            <label class="beh-label">Novel Objects to Animal</label>
+            <select id="b-hum-novel" class="beh-select">
+                <option value="N/A">Select...</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+            </select>
+            
+            <label class="beh-label">Proximity to Animal</label>
+            <select id="b-hum-prox" class="beh-select">
+                <option value="N/A">Select...</option>
+                <option value="Direct Contact">Direct Contact</option>
+                <option value="Inside Enclosure">Inside Enclosure</option>
+                <option value="Outside Enclosure">Outside Enclosure</option>
+            </select>
+
+            <label class="beh-check-row"><input type="checkbox" id="b-hum-vis"> Visitors Present</label>
+
+            <div id="beh-targets" class="checkbox-group"></div>
+            <button class="log-btn" id="btn-save-beh" onclick="saveBehaviour()">Save Behaviour</button>
+        </div>
+
         <div class="section-title">Log a Note</div>
-        <div class="note-container">
-            <div id="note-targets" class="checkbox-group">
-                <!-- Checkboxes populated dynamically -->
-            </div>
+        <div class="form-container note-container">
+            <div id="note-targets" class="checkbox-group"></div>
             <textarea id="inline-note" placeholder="Tap here to type a note..."></textarea>
-            <button class="log-note-btn" onclick="saveInlineNote()">Log Note</button>
+            <button class="log-btn" onclick="saveInlineNote()">Log Note</button>
         </div>
 
         <div class="section-title">Session Actions</div>
@@ -152,7 +212,6 @@
             return { mode: mode, target: target };
         }
 
-        // --- THE AUTO-SAVE ENGINE ---
         function saveState() {
             const vault = { s: session, l: logs, a: activeTasks, i: activeInterruption };
             localStorage.setItem('keeper_app_vault', JSON.stringify(vault));
@@ -172,7 +231,6 @@
                     
                     document.getElementById('session-summary').innerText = `Team: ${session.team}  |  Obs: ${session.observer}`;
                     
-                    // Restore live dropdown states
                     document.getElementById('obsMode').value = session.liveMode || "Whole Team";
                     document.getElementById('targetKeeper').value = session.liveTarget || "";
                     toggleKeeperInput();
@@ -181,7 +239,7 @@
                     document.getElementById('app').style.display = 'block';
                     
                     renderActiveZone();
-                    updateNoteTargets();
+                    updateChecklists();
                     
                     if (activeInterruption) {
                         let btn = document.getElementById('btn-' + activeInterruption.name.replace(/[^a-zA-Z0-9]/g, ''));
@@ -194,7 +252,6 @@
             updateStorageMeter();
         }
 
-        // --- STORAGE METER & CLEARING ---
         function updateStorageMeter() {
             let vaultStr = localStorage.getItem('keeper_app_vault') || '[]';
             let bytes = new Blob([vaultStr]).size;
@@ -244,7 +301,6 @@
             alert(`Cleared ${deletedCount} safely backed-up rows. \n${unsyncedOnly.length} pending rows protected.`);
         }
 
-        // --- GOOGLE SYNC ENGINE ---
         async function syncEngine() {
             let unsynced = logs.filter(item => item.synced === false);
             if(unsynced.length === 0) return; 
@@ -321,13 +377,12 @@
             document.getElementById('setup').style.display = 'none';
             document.getElementById('app').style.display = 'block';
             
-            // Reset live targets for new session
             document.getElementById('obsMode').value = "Whole Team";
             document.getElementById('targetKeeper').value = "";
             toggleKeeperInput();
             
             saveState(); 
-            updateNoteTargets();
+            updateChecklists();
             clockInterval = setInterval(updateClocks, 1000);
         }
 
@@ -368,35 +423,46 @@
             });
         }
 
-        function updateNoteTargets() {
-            let container = document.getElementById('note-targets');
-            container.innerHTML = `<label><input type="checkbox" id="cb-general" value="General" checked> General Session Note</label>`;
-            
-            const uncheckGeneral = `onchange="document.getElementById('cb-general').checked = false;"`;
-            
+        function populateChecklistHTML() {
+            let html = `<label><input type="checkbox" class="cb-general" value="General" checked> General Session</label>`;
             Object.keys(activeTasks).forEach(task => {
-                container.innerHTML += `<label><input type="checkbox" class="event-cb" data-type="task" data-name="${task}" value="${activeTasks[task].start}" ${uncheckGeneral}> Attach to Task: ${task}</label>`;
+                html += `<label><input type="checkbox" class="event-cb" data-name="${task}" value="${activeTasks[task].start}"> Attach to Task: ${task}</label>`;
             });
-            
             if (activeInterruption) {
-                container.innerHTML += `<label><input type="checkbox" class="event-cb" data-type="interruption" data-name="${activeInterruption.name}" value="${activeInterruption.start}" ${uncheckGeneral}> Attach to Interruption: ${activeInterruption.name}</label>`;
+                html += `<label><input type="checkbox" class="event-cb" data-name="${activeInterruption.name}" value="${activeInterruption.start}"> Attach to Interruption: ${activeInterruption.name}</label>`;
             }
+            return html;
+        }
 
-            document.getElementById('cb-general').addEventListener('change', function() {
+        function bindChecklistLogic(containerId) {
+            let container = document.getElementById(containerId);
+            container.querySelector('.cb-general').addEventListener('change', function() {
                 if(this.checked) {
-                    let boxes = document.querySelectorAll('.event-cb');
-                    boxes.forEach(b => b.checked = false);
+                    container.querySelectorAll('.event-cb').forEach(b => b.checked = false);
                 }
             });
+            container.querySelectorAll('.event-cb').forEach(cb => {
+                cb.addEventListener('change', function() {
+                    if(this.checked) {
+                        container.querySelector('.cb-general').checked = false;
+                    }
+                });
+            });
+        }
+
+        function updateChecklists() {
+            let html = populateChecklistHTML();
+            document.getElementById('note-targets').innerHTML = html;
+            document.getElementById('beh-targets').innerHTML = html;
+            bindChecklistLogic('note-targets');
+            bindChecklistLogic('beh-targets');
         }
 
         function startTask(taskName) {
             if (activeTasks[taskName]) return; 
             if (Object.keys(activeTasks).length >= 2) return alert("Maximum 2 concurrent tasks allowed.");
             
-            // Capture the target context exactly when the task starts
             let targetData = getCurrentTargetData();
-            
             activeTasks[taskName] = { 
                 start: Date.now(),
                 obsMode: targetData.mode,
@@ -404,7 +470,7 @@
             };
             
             renderActiveZone();
-            updateNoteTargets();
+            updateChecklists();
             saveState(); 
             
             let currentTitle = document.getElementById('menu-title').innerText;
@@ -432,7 +498,7 @@
             logs.push(payload);
             delete activeTasks[taskName];
             renderActiveZone();
-            updateNoteTargets();
+            updateChecklists();
             saveState(); 
             syncEngine();
             
@@ -448,9 +514,7 @@
                 btn.className = 'pinned-task';
                 btn.id = 'active-' + task.replace(/[^a-zA-Z0-9]/g, '');
                 
-                // Show the user who this task is attributed to if they switch modes
                 let contextDisplay = activeTasks[task].obsMode === 'Specific Keeper' ? ` (${activeTasks[task].targetKeeper})` : '';
-                
                 btn.innerHTML = `<strong>${task}${contextDisplay}</strong><br><span style="font-size:12px; font-weight:normal;" id="clock-${task.replace(/[^a-zA-Z0-9]/g, '')}">00:00</span>`;
                 btn.onclick = () => stopTask(task);
                 zone.appendChild(btn);
@@ -501,7 +565,6 @@
                 btn.innerText = intName; 
                 activeInterruption = null;
             } else {
-                // Capture the target context exactly when the interruption starts
                 let targetData = getCurrentTargetData();
                 activeInterruption = { 
                     name: intName, 
@@ -511,7 +574,7 @@
                 };
                 btn.classList.add('active-int');
             }
-            updateNoteTargets();
+            updateChecklists();
             saveState();
             syncEngine();
         }
@@ -522,24 +585,18 @@
             let latest = keys.reduce((a, b) => activeTasks[a].start > activeTasks[b].start ? a : b);
             delete activeTasks[latest];
             renderActiveZone();
-            updateNoteTargets();
+            updateChecklists();
             saveState(); 
         }
-
-        function saveInlineNote() {
-            let noteInput = document.getElementById('inline-note');
-            let note = noteInput.value.trim();
-            if (!note) return;
-
-            let noteTime = new Date().toISOString();
-            let checkedBoxes = document.querySelectorAll('#note-targets input[type="checkbox"]:checked');
-            
+        
+        function getCheckedEventData(containerId) {
+            let checkedBoxes = document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`);
             let eventNames = [];
             let eventStarts = [];
             let isGeneral = false;
 
             checkedBoxes.forEach(box => {
-                if (box.id === 'cb-general') {
+                if (box.classList.contains('cb-general')) {
                     isGeneral = true;
                 } else {
                     eventNames.push(box.getAttribute('data-name'));
@@ -548,8 +605,68 @@
             });
 
             if (checkedBoxes.length === 0) isGeneral = true; 
+            
+            return {
+                names: isGeneral ? "" : eventNames.join(" | "),
+                starts: isGeneral ? "" : eventStarts.join(" | ")
+            };
+        }
 
-            // Live grab of the current target state for the note
+        function saveBehaviour() {
+            let eventData = getCheckedEventData('beh-targets');
+            let targetData = getCurrentTargetData();
+            
+            let payload = {
+                dataType: "behaviour",
+                sessionId: session.id,
+                team: session.team,
+                observer: session.observer,
+                obsMode: targetData.mode,
+                targetKeeper: targetData.target,
+                time: new Date().toISOString(),
+                associatedEvent: eventData.names,
+                animMove: document.getElementById('b-anim-move').value,
+                animVocal: document.getElementById('b-anim-vocal').value,
+                animVig: document.getElementById('b-anim-vig').checked ? "Yes" : "No",
+                animVis: document.getElementById('b-anim-vis').checked ? "Not Visible" : "Visible",
+                humSpeed: document.getElementById('b-hum-speed').value,
+                humNoise: document.getElementById('b-hum-noise').value,
+                humNovel: document.getElementById('b-hum-novel').value,
+                humProx: document.getElementById('b-hum-prox').value,
+                humVis: document.getElementById('b-hum-vis').checked ? "Yes" : "No",
+                synced: false
+            };
+            
+            logs.push(payload);
+            
+            // Visual feedback
+            let btn = document.getElementById('btn-save-beh');
+            btn.innerText = "✅ Saved!";
+            setTimeout(() => { btn.innerText = "Save Behaviour"; }, 2000);
+            
+            // Reset form
+            document.getElementById('b-anim-move').value = "N/A";
+            document.getElementById('b-anim-vocal').value = "N/A";
+            document.getElementById('b-anim-vig').checked = false;
+            document.getElementById('b-anim-vis').checked = false;
+            document.getElementById('b-hum-speed').value = "N/A";
+            document.getElementById('b-hum-noise').value = "N/A";
+            document.getElementById('b-hum-novel').value = "N/A";
+            document.getElementById('b-hum-prox').value = "N/A";
+            document.getElementById('b-hum-vis').checked = false;
+            
+            updateChecklists(); 
+            document.activeElement.blur(); 
+            saveState(); 
+            syncEngine(); 
+        }
+
+        function saveInlineNote() {
+            let noteInput = document.getElementById('inline-note');
+            let note = noteInput.value.trim();
+            if (!note) return;
+
+            let eventData = getCheckedEventData('note-targets');
             let targetData = getCurrentTargetData();
 
             let payload = {
@@ -559,10 +676,10 @@
                 observer: session.observer,
                 obsMode: targetData.mode,
                 targetKeeper: targetData.target,
-                time: noteTime,
+                time: new Date().toISOString(),
                 noteText: note,
-                associatedEvent: isGeneral ? "" : eventNames.join(" | "),
-                associatedStart: isGeneral ? "" : eventStarts.join(" | "),
+                associatedEvent: eventData.names,
+                associatedStart: eventData.starts,
                 synced: false
             };
             
@@ -571,10 +688,7 @@
             noteInput.placeholder = "✅ Note saved!";
             setTimeout(() => { noteInput.placeholder = "Tap here to type a note..."; }, 3000);
             
-            let allBoxes = document.querySelectorAll('#note-targets input[type="checkbox"]');
-            allBoxes.forEach(b => b.checked = false);
-            document.getElementById('cb-general').checked = true;
-
+            updateChecklists();
             document.activeElement.blur(); 
             saveState(); 
             syncEngine(); 
