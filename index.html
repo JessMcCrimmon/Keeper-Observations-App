@@ -52,7 +52,7 @@
         .beh-label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #555; }
         .beh-input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
         
-        .beh-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .beh-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 20px; }
         .beh-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 20px; }
         
         .beh-item { background: #f4f4f9; padding: 8px 2px; border-radius: 8px; border: 1px solid #e0e0e0; display: flex; flex-direction: column; align-items: center; }
@@ -145,8 +145,8 @@
             <label class="beh-label">Target Species</label>
             <input type="text" id="b-species" class="beh-input" placeholder="e.g., Sumatran Tiger">
 
-            <!-- 2-COLUMN ANIMAL BEHAVIOUR GRID -->
-            <div class="beh-grid-2">
+            <!-- 3-COLUMN ANIMAL BEHAVIOUR GRID -->
+            <div class="beh-grid-3">
                 <div class="beh-item">
                     <div class="beh-item-title">Movement / Prox.</div>
                     <div class="radio-group-col">
@@ -165,11 +165,10 @@
                     </div>
                 </div>
 
-                <div class="beh-item">
-                    <label class="beh-check-row"><input type="checkbox" id="b-anim-vig"> Vigilance</label>
-                </div>
-                <div class="beh-item">
-                    <label class="beh-check-row"><input type="checkbox" id="b-anim-vis"> Not Visible</label>
+                <!-- NEW 3RD COLUMN FOR CHECKBOXES -->
+                <div class="beh-item" style="justify-content: center; gap: 15px;">
+                    <label class="beh-check-row" style="margin: 0;"><input type="checkbox" id="b-anim-vig"> Vigilance</label>
+                    <label class="beh-check-row" style="margin: 0;"><input type="checkbox" id="b-anim-vis"> Not Visible</label>
                 </div>
             </div>
 
