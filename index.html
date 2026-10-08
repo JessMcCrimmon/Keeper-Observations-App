@@ -18,7 +18,7 @@
         
         .start-btn { background: #3498db; color: white; margin-top: 10px; }
         
-        .session-summary { background: #ede7f6; border: 2px solid #b39ddb; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; color: #311b92; text-align: center; width: 80%; margin: 0 auto 20px auto; }   
+        .session-summary { background: #ede7f6; border: 2px solid #b39ddb; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; color: #311b92; text-align: center; width: 80%; margin: 0 auto 20px auto; }
         
         .logo-container { display: flex; justify-content: center; align-items: center; gap: 5px; margin: 20px 0; }
         .logo-container img { max-height: 130px; width: auto; object-fit: contain; }
@@ -243,7 +243,7 @@
                     activeTasks = vault.a || {};
                     activeInterruption = vault.i || null;
                     
-                    document.getElementById('session-summary').innerText = `Team: ${session.team}  |  Obs: ${session.observer}`;
+                    document.getElementById('session-summary').innerText = `Team: ${session.team}  |  Observer: ${session.observer}`; 
                     
                     document.getElementById('obsMode').value = session.liveMode || "Whole Team";
                     document.getElementById('targetKeeper').value = session.liveTarget || "";
@@ -387,7 +387,8 @@
             session.team = document.getElementById('teamName').value || "Unknown";
             session.observer = document.getElementById('observerId').value || "Unknown";
             
-            document.getElementById('session-summary').innerText = `Team: ${session.team}  |  Obs: ${session.observer}`;
+            document.getElementById('session-summary').innerText = `Team: ${session.team}  |  Observer: ${session.observer}`;
+            
             document.getElementById('setup').style.display = 'none';
             document.getElementById('app').style.display = 'block';
             
