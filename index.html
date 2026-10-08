@@ -8,18 +8,18 @@
 
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; background: #f4f4f9; touch-action: manipulation; }
-        .header { background: #2c3e50; color: white; padding: 15px; text-align: center; font-size: 20px; font-weight: bold; }
+        
+        /* UNIFIED HEADER DASHBOARD */
+        .header { background: #2c3e50; color: white; padding: 15px; text-align: center; }
+        .header-title { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+        .session-summary { background: #ede7f6; border: 2px solid #b39ddb; padding: 6px 15px; border-radius: 8px; font-size: 13px; font-weight: bold; color: #311b92; text-align: center; width: fit-content; margin: 0 auto 10px auto; }
+        .storage-meter { font-size: 11px; color: #2c3e50; text-align: center; margin: 0 auto; font-weight: bold; background: #ecf0f1; padding: 6px 12px; border-radius: 6px; width: fit-content; }
+        
         .container { padding: 15px; }
-        
-        .storage-meter { font-size: 12px; color: #7f8c8d; text-align: center; margin: 15px; font-weight: bold; background: #ecf0f1; padding: 8px; border-radius: 6px; }
-        
         input[type="text"], input[type="date"], select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; background: white; }
         button { width: 100%; padding: 15px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         
         .start-btn { background: #3498db; color: white; margin-top: 10px; }
-        
-        .session-summary { background: #ede7f6; border: 2px solid #b39ddb; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: bold; color: #311b92; text-align: center; width: fit-content; margin: 0 auto 20px auto; }
-        
         .target-box { background: #ffffff; border: 2px solid #bdc3c7; border-radius: 8px; padding: 10px 15px; width: 80%; margin: 0 auto 20px auto; text-align: center; }
         
         .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 20px; }
@@ -48,14 +48,12 @@
         .beh-label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #555; }
         .beh-input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
         
-        /* NEW DYNAMIC BEHAVIOUR GRIDS */
         .beh-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .beh-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 20px; }
         
         .beh-item { background: #f4f4f9; padding: 8px 2px; border-radius: 8px; border: 1px solid #e0e0e0; display: flex; flex-direction: column; align-items: center; }
         .beh-item-title { font-size: 12px; font-weight: bold; color: #2c3e50; margin-bottom: 8px; border-bottom: 1px solid #ccc; padding-bottom: 4px; text-align: center; line-height: 1.1; width: 90%; }
         
-        /* Centered group, left-aligned buttons */
         .radio-group-col { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; width: fit-content; }
         .radio-group-col label { display: flex; align-items: center; font-size: 11px; cursor: pointer; margin: 0; color: #444; }
         .radio-group-col input[type="radio"] { width: 14px; height: 14px; margin: 0 4px 0 0; }
@@ -80,9 +78,13 @@
 </head>
 <body>
 
-    <div class="header">Keeper Observations</div>
-    
-    <div id="storage-meter" class="storage-meter">Storage: Calculating...</div>
+    <!-- UNIFIED DASHBOARD HEADER -->
+    <div class="header">
+        <div class="header-title">Keeper Observations</div>
+        <!-- This badge stays hidden until a session actually starts -->
+        <div id="session-summary" class="session-summary" style="display: none;"></div>
+        <div id="storage-meter" class="storage-meter">Storage: Calculating...</div>
+    </div>
 
     <div id="setup" class="container" style="display: block;">
         
@@ -102,7 +104,6 @@
     </div>
 
     <div id="app" class="container" style="display: none;">
-        <div id="session-summary" class="session-summary"></div>
         
         <div class="target-box">
             <div class="section-title">Current Target (Change Anytime)</div>
@@ -199,7 +200,6 @@
                     <div class="beh-item-title">Proximity</div>
                     <div class="radio-group-col">
                         <label><input type="radio" name="b-hum-prox" value="N/A" checked> N/A</label>
-                        <!-- Notice the display text is shortened, but the 'value' sent to Google Sheets remains full -->
                         <label><input type="radio" name="b-hum-prox" value="Direct Contact"> Direct</label>
                         <label><input type="radio" name="b-hum-prox" value="Inside Enclosure"> Inside</label>
                         <label><input type="radio" name="b-hum-prox" value="Outside Enclosure"> Outside</label>
@@ -279,6 +279,7 @@
                     activeInterruption = vault.i || null;
                     
                     document.getElementById('session-summary').innerText = `Team: ${session.team}  |  Observer: ${session.observer}`;
+                    document.getElementById('session-summary').style.display = 'block'; // Unhides badge on load
                     
                     document.getElementById('obsMode').value = session.liveMode || "Whole Team";
                     document.getElementById('targetKeeper').value = session.liveTarget || "";
@@ -310,7 +311,7 @@
             
             document.getElementById('storage-meter').innerHTML = 
                 `Storage: ${percent}% of 5MB Limit<br>` + 
-                `<span style="font-weight:normal; font-size:11px;">(Cloud: ${syncedCount} rows | Pending: ${unsyncedCount} rows)</span>`;
+                `<span style="font-weight:normal; font-size:10px;">(Cloud: ${syncedCount} rows | Pending: ${unsyncedCount} rows)</span>`;
         }
 
         function requestClear() {
@@ -423,6 +424,8 @@
             session.observer = document.getElementById('observerId').value || "Unknown";
             
             document.getElementById('session-summary').innerText = `Team: ${session.team}  |  Observer: ${session.observer}`;
+            document.getElementById('session-summary').style.display = 'block'; // Unhides badge when you hit start
+            
             document.getElementById('setup').style.display = 'none';
             document.getElementById('app').style.display = 'block';
             
@@ -764,6 +767,8 @@
             endArmed = false;
 
             document.getElementById('end-btn').innerText = "End Session";
+            document.getElementById('session-summary').style.display = 'none'; // Hides badge again
+            
             document.getElementById('app').style.display = 'none';
             document.getElementById('setup').style.display = 'block';
             
