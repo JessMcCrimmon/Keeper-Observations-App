@@ -13,7 +13,7 @@
         
         .storage-meter { font-size: 12px; color: #7f8c8d; text-align: center; margin-bottom: 15px; font-weight: bold; background: #ecf0f1; padding: 8px; border-radius: 6px; }
         
-        input[type="text"], input[type="date"] { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; background: white; }
+        input[type="text"], input[type="date"], select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; background: white; }
         button { width: 100%; padding: 15px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         
         .start-btn { background: #3498db; color: white; margin-top: 10px; }
@@ -66,6 +66,17 @@
         <label>Observer ID</label>
         <input type="text" id="observerId" placeholder="Initials or ID">
         
+        <label>Observation Target</label>
+        <select id="obsMode" onchange="toggleKeeperInput()">
+            <option value="Whole Team">Whole Team</option>
+            <option value="Specific Keeper">Specific Keeper</option>
+        </select>
+        
+        <div id="keeperInputZone" style="display: none;">
+            <label>Keeper Initials / ID</label>
+            <input type="text" id="targetKeeper" placeholder="e.g., AB">
+        </div>
+        
         <button class="start-btn" id="begin-btn">Begin Session</button>
         <button class="clear-btn" id="clear-btn" onclick="requestClear()">Clear Synced Data</button>
     </div>
@@ -85,7 +96,8 @@
         <div class="section-title">Log a Note</div>
         <div class="note-container">
             <div id="note-targets" class="checkbox-group">
-                </div>
+                <!-- Checkboxes populated dynamically -->
+            </div>
             <textarea id="inline-note" placeholder="Tap here to type a note..."></textarea>
             <button class="log-note-btn" onclick="saveInlineNote()">Log Note</button>
         </div>
@@ -97,7 +109,7 @@
 
     <script>
         // --- ADD YOUR SCRIPT URL HERE ---
-        const scriptUrl = "https://script.google.com/macros/s/AKfycbwjHBkzbh--F_MQacQbBJZk6bA9PVL1tpYnZj54yz4McmrC68QlWWpvNZ1fewiUH61l/exec";
+        const scriptUrl = "https://script.google.com/u/0/home/projects/1ON9gHGZwm7kQz-GsJuPvdIbiw3YXIVjIEhQelCuBkSnbmzhhnzyU5oBa/edit";
         
         const taskHierarchy = {
             "Husbandry": ["Enclosure Cleaning", "Food Prep", "Diet Provision", "Enrichment"],
@@ -107,7 +119,7 @@
         
         const interruptions = ["Visitor Interaction", "Radio Call", "Equipment Issue", "Other"];
 
-        let session = { id: "", team: "", observer: "" };
+        let session = { id: "", team: "", observer: "", mode: "", targetKeeper: "" };
         let logs = []; 
         let activeTasks = {}; 
         let activeInterruption = null; 
@@ -117,6 +129,11 @@
         let endArmTimer = null;
         let clearStage = 0;
         let clearTimer = null;
+
+        function toggleKeeperInput() {
+            const mode = document.getElementById('obsMode').value;
+            document.getElementById('keeperInputZone').style.display = mode === 'Specific Keeper' ? 'block' : 'none';
+        }
 
         // --- THE AUTO-SAVE ENGINE ---
         function saveState() {
@@ -136,7 +153,8 @@
                     activeTasks = vault.a || {};
                     activeInterruption = vault.i || null;
                     
-                    document.getElementById('session-summary').innerText = `Team: ${session.team}  |  Obs: ${session.observer}`;
+                    let targetDisplay = session.mode === 'Specific Keeper' ? session.targetKeeper : 'Whole Team';
+                    document.getElementById('session-summary').innerText = `Team: ${session.team} | Obs: ${session.observer} | Target: ${targetDisplay}`;
                     document.getElementById('setup').style.display = 'none';
                     document.getElementById('app').style.display = 'block';
                     
@@ -276,8 +294,11 @@
             session.id = new Date().toISOString();
             session.team = document.getElementById('teamName').value || "Unknown";
             session.observer = document.getElementById('observerId').value || "Unknown";
+            session.mode = document.getElementById('obsMode').value;
+            session.targetKeeper = session.mode === 'Specific Keeper' ? (document.getElementById('targetKeeper').value || "Unknown") : "N/A";
             
-            document.getElementById('session-summary').innerText = `Team: ${session.team}  |  Obs: ${session.observer}`;
+            let targetDisplay = session.mode === 'Specific Keeper' ? session.targetKeeper : 'Whole Team';
+            document.getElementById('session-summary').innerText = `Team: ${session.team} | Obs: ${session.observer} | Target: ${targetDisplay}`;
             document.getElementById('setup').style.display = 'none';
             document.getElementById('app').style.display = 'block';
             
@@ -323,7 +344,6 @@
             });
         }
 
-        // Creates dynamic checkboxes based on what is currently running
         function updateNoteTargets() {
             let container = document.getElementById('note-targets');
             container.innerHTML = `<label><input type="checkbox" id="cb-general" value="General" checked> General Session Note</label>`;
@@ -338,7 +358,6 @@
                 container.innerHTML += `<label><input type="checkbox" class="event-cb" data-type="interruption" data-name="${activeInterruption.name}" value="${activeInterruption.start}" ${uncheckGeneral}> Attach to Interruption: ${activeInterruption.name}</label>`;
             }
 
-            // Ensure "General" unchecks other boxes if selected manually
             document.getElementById('cb-general').addEventListener('change', function() {
                 if(this.checked) {
                     let boxes = document.querySelectorAll('.event-cb');
@@ -368,8 +387,10 @@
             let payload = {
                 dataType: "task",
                 sessionId: session.id,
-                timestamp: new Date().toISOString(),
                 team: session.team,
+                observer: session.observer,
+                obsMode: session.mode,
+                targetKeeper: session.targetKeeper,
                 task: taskName,
                 taskStart: new Date(taskData.start).toISOString(),
                 taskEnd: new Date(now).toISOString(),
@@ -431,6 +452,8 @@
                     sessionId: session.id,
                     team: session.team,
                     observer: session.observer,
+                    obsMode: session.mode,
+                    targetKeeper: session.targetKeeper,
                     intStart: new Date(activeInterruption.start).toISOString(),
                     intEnd: new Date(now).toISOString(),
                     intType: activeInterruption.name,
@@ -466,8 +489,6 @@
             if (!note) return;
 
             let noteTime = new Date().toISOString();
-            
-            // Gather all checked boxes
             let checkedBoxes = document.querySelectorAll('#note-targets input[type="checkbox"]:checked');
             
             let eventNames = [];
@@ -483,13 +504,15 @@
                 }
             });
 
-            if (checkedBoxes.length === 0) isGeneral = true; // Safety fallback
+            if (checkedBoxes.length === 0) isGeneral = true; 
 
             let payload = {
                 dataType: "note",
                 sessionId: session.id,
                 team: session.team,
                 observer: session.observer,
+                obsMode: session.mode,
+                targetKeeper: session.targetKeeper,
                 time: noteTime,
                 noteText: note,
                 associatedEvent: isGeneral ? "" : eventNames.join(" | "),
@@ -502,7 +525,6 @@
             noteInput.placeholder = "✅ Note saved!";
             setTimeout(() => { noteInput.placeholder = "Tap here to type a note..."; }, 3000);
             
-            // Reset checkboxes
             let allBoxes = document.querySelectorAll('#note-targets input[type="checkbox"]');
             allBoxes.forEach(b => b.checked = false);
             document.getElementById('cb-general').checked = true;
@@ -520,7 +542,7 @@
 
             activeTasks = {};
             activeInterruption = null;
-            session = { id: "", team: "", observer: "" };
+            session = { id: "", team: "", observer: "", mode: "", targetKeeper: "" };
             
             saveState();
             endArmed = false;
