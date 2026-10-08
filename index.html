@@ -9,13 +9,10 @@
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; background: #f4f4f9; touch-action: manipulation; }
         
-       /* UNIFIED HEADER DASHBOARD */
+        /* UNIFIED HEADER DASHBOARD */
         .header { background: #2c3e50; color: white; padding: 15px; text-align: center; }
         .header-title { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
-        
-        /* New container that forces them side-by-side */
         .header-info { display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; }
-        
         .session-summary { background: #ede7f6; border: 2px solid #b39ddb; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; color: #311b92; text-align: center; margin: 0; }
         .storage-meter { font-size: 11px; color: #2c3e50; text-align: center; font-weight: bold; background: #ecf0f1; padding: 8px 12px; border-radius: 6px; margin: 0; }
         
@@ -31,17 +28,17 @@
         @keyframes pulse-green { 0% { box-shadow: 0 0 0 0 rgba(125, 206, 160, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(125, 206, 160, 0); } 100% { box-shadow: 0 0 0 0 rgba(125, 206, 160, 0); } }
         @keyframes pulse-orange { 0% { box-shadow: 0 0 0 0 rgba(225, 112, 85, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(225, 112, 85, 0); } 100% { box-shadow: 0 0 0 0 rgba(225, 112, 85, 0); } }
 
-        .cat-btn { background: #34495e; color: white; border: 1px solid #2c3e50; padding: 25px 2px; font-size: 18px; font-weight: bold; line-height: 1.2; grid-column: span 2; }
+        .cat-btn { background: #34495e; color: white; border: 1px solid #2c3e50; padding: 25px 2px; font-size: 16px; font-weight: bold; line-height: 1.2; grid-column: span 2; }
         .task-btn { background: #ffffff; color: #333; border: 1px solid #ddd; grid-column: span 3; }
         .back-btn { background: #bdc3c7; color: #333; grid-column: span 6; margin-bottom: 10px; }
         
         .active-zone { margin-bottom: 20px; min-height: 50px; background: #e9f7ef; border: 2px dashed #7dcea0; border-radius: 8px; padding: 10px; }
         .active-zone:empty { display: none; }
-        .pinned-task { background: #a9dfbf; color: #145a32; animation: pulse-green 1.5s infinite; margin-bottom: 10px; width: 100%; text-align: left; padding: 15px; border: 1px solid #7dcea0; }     
+        .pinned-task { background: #a9dfbf; color: #145a32; animation: pulse-green 1.5s infinite; margin-bottom: 10px; width: 100%; text-align: left; padding: 15px; border: 1px solid #7dcea0; }
         
         .section-title { font-size: 14px; color: #7f8c8d; text-transform: uppercase; margin-bottom: 10px; font-weight: bold; }
         
-        .int-btn { background: #ffeaa7; color: #d35400; grid-column: span 3; font-size: 18px}
+        .int-btn { background: #ffeaa7; color: #d35400; grid-column: span 3; }
         .int-btn.active-int { background: #e17055; color: white; animation: pulse-orange 1.5s infinite; }
         
         .undo-btn { background: #95a5a6; color: white; width: 100%; margin-bottom: 20px;}
@@ -56,13 +53,14 @@
         .beh-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 20px; }
         
         .beh-item { background: #f4f4f9; padding: 8px 2px; border-radius: 8px; border: 1px solid #e0e0e0; display: flex; flex-direction: column; align-items: center; }
-        .beh-item-title { font-size: 14px; font-weight: bold; color: #2c3e50; margin-bottom: 8px; border-bottom: 1px solid #ccc; padding-bottom: 4px; text-align: center; line-height: 1.1; width: 90%; }
         
+        /* UPDATED LARGER SIZES FOR BOTH BEHAVIOUR SECTIONS */
+        .beh-item-title { font-size: 14px; font-weight: bold; color: #2c3e50; margin-bottom: 8px; border-bottom: 1px solid #ccc; padding-bottom: 4px; text-align: center; line-height: 1.1; width: 90%; }
         .radio-group-col { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; width: fit-content; }
         .radio-group-col label { display: flex; align-items: center; font-size: 13px; cursor: pointer; margin: 0; color: #444; }
-        .radio-group-col input[type="radio"] { width: 14px; height: 14px; margin: 0 4px 0 0; }
-        
         .beh-check-row { display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; color: #2c3e50; margin: 0; cursor: pointer; text-align: center; }
+        
+        .radio-group-col input[type="radio"] { width: 14px; height: 14px; margin: 0 4px 0 0; }
         .beh-check-row input[type="checkbox"] { width: 20px; height: 20px; margin-right: 8px; }
         
         .note-container textarea { width: 100%; height: 80px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; font-family: inherit; resize: none; box-sizing: border-box; background: #f9f9f9; margin-bottom: 10px; }
@@ -85,8 +83,6 @@
     <!-- UNIFIED DASHBOARD HEADER -->
     <div class="header">
         <div class="header-title">Keeper Observations</div>
-        
-        <!-- We wrap them in the new header-info box -->
         <div class="header-info">
             <div id="session-summary" class="session-summary" style="display: none;"></div>
             <div id="storage-meter" class="storage-meter">Storage: Calculating...</div>
@@ -165,7 +161,6 @@
                     </div>
                 </div>
 
-                <!-- NEW 3RD COLUMN FOR CHECKBOXES -->
                 <div class="beh-item" style="justify-content: center; gap: 15px;">
                     <label class="beh-check-row" style="margin: 0;"><input type="checkbox" id="b-anim-vig"> Vigilance</label>
                     <label class="beh-check-row" style="margin: 0;"><input type="checkbox" id="b-anim-vis"> Not Visible</label>
@@ -285,7 +280,7 @@
                     activeInterruption = vault.i || null;
                     
                     document.getElementById('session-summary').innerText = `Team: ${session.team}  |  Observer: ${session.observer}`;
-                    document.getElementById('session-summary').style.display = 'block'; // Unhides badge on load
+                    document.getElementById('session-summary').style.display = 'block'; 
                     
                     document.getElementById('obsMode').value = session.liveMode || "Whole Team";
                     document.getElementById('targetKeeper').value = session.liveTarget || "";
@@ -430,7 +425,7 @@
             session.observer = document.getElementById('observerId').value || "Unknown";
             
             document.getElementById('session-summary').innerText = `Team: ${session.team}  |  Observer: ${session.observer}`;
-            document.getElementById('session-summary').style.display = 'block'; // Unhides badge when you hit start
+            document.getElementById('session-summary').style.display = 'block'; 
             
             document.getElementById('setup').style.display = 'none';
             document.getElementById('app').style.display = 'block';
@@ -773,7 +768,7 @@
             endArmed = false;
 
             document.getElementById('end-btn').innerText = "End Session";
-            document.getElementById('session-summary').style.display = 'none'; // Hides badge again
+            document.getElementById('session-summary').style.display = 'none'; 
             
             document.getElementById('app').style.display = 'none';
             document.getElementById('setup').style.display = 'block';
