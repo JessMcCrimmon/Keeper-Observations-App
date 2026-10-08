@@ -48,14 +48,17 @@
         .beh-label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #555; }
         .beh-input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
         
-        /* NEW COMPACT 2-COLUMN BEHAVIOUR GRID */
-        .beh-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .beh-item { background: #f4f4f9; padding: 10px; border-radius: 8px; border: 1px solid #e0e0e0; display: flex; flex-direction: column; justify-content: center; }
-        .beh-item-title { font-size: 13px; font-weight: bold; color: #2c3e50; margin-bottom: 8px; border-bottom: 1px solid #ccc; padding-bottom: 4px; text-align: center; line-height: 1.2; }
+        /* NEW DYNAMIC BEHAVIOUR GRIDS */
+        .beh-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .beh-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 20px; }
         
-        .radio-group-col { display: flex; flex-direction: column; gap: 6px; }
-        .radio-group-col label { display: flex; align-items: center; font-size: 13px; cursor: pointer; margin: 0; color: #444; }
-        .radio-group-col input[type="radio"] { width: 18px; height: 18px; margin: 0 8px 0 0; }
+        .beh-item { background: #f4f4f9; padding: 8px 2px; border-radius: 8px; border: 1px solid #e0e0e0; display: flex; flex-direction: column; align-items: center; }
+        .beh-item-title { font-size: 12px; font-weight: bold; color: #2c3e50; margin-bottom: 8px; border-bottom: 1px solid #ccc; padding-bottom: 4px; text-align: center; line-height: 1.1; width: 90%; }
+        
+        /* Centered group, left-aligned buttons */
+        .radio-group-col { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; width: fit-content; }
+        .radio-group-col label { display: flex; align-items: center; font-size: 11px; cursor: pointer; margin: 0; color: #444; }
+        .radio-group-col input[type="radio"] { width: 14px; height: 14px; margin: 0 4px 0 0; }
         
         .beh-check-row { display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: #2c3e50; margin: 0; cursor: pointer; text-align: center; }
         .beh-check-row input[type="checkbox"] { width: 20px; height: 20px; margin-right: 8px; }
@@ -134,14 +137,14 @@
             <label class="beh-label">Target Species</label>
             <input type="text" id="b-species" class="beh-input" placeholder="e.g., Sumatran Tiger">
 
-            <!-- CONDENSED ANIMAL BEHAVIOUR GRID -->
-            <div class="beh-grid">
+            <!-- 2-COLUMN ANIMAL BEHAVIOUR GRID -->
+            <div class="beh-grid-2">
                 <div class="beh-item">
                     <div class="beh-item-title">Movement / Prox.</div>
                     <div class="radio-group-col">
                         <label><input type="radio" name="b-anim-move" value="N/A" checked> N/A</label>
                         <label><input type="radio" name="b-anim-move" value="Avoidance"> Avoidance</label>
-                        <label><input type="radio" name="b-anim-move" value="Approach < 0.5m"> Approach &lt; 0.5m</label>
+                        <label><input type="radio" name="b-anim-move" value="Approach < 0.5m"> &lt; 0.5m</label>
                     </div>
                 </div>
                 
@@ -163,8 +166,8 @@
             </div>
 
             <h4>Human Behaviour</h4>
-            <!-- CONDENSED HUMAN BEHAVIOUR GRID -->
-            <div class="beh-grid">
+            <!-- 4-COLUMN HUMAN BEHAVIOUR GRID -->
+            <div class="beh-grid-4">
                 <div class="beh-item">
                     <div class="beh-item-title">Speed</div>
                     <div class="radio-group-col">
@@ -175,7 +178,7 @@
                 </div>
                 
                 <div class="beh-item">
-                    <div class="beh-item-title">Noise Level</div>
+                    <div class="beh-item-title">Noise</div>
                     <div class="radio-group-col">
                         <label><input type="radio" name="b-hum-noise" value="N/A" checked> N/A</label>
                         <label><input type="radio" name="b-hum-noise" value="Quiet"> Quiet</label>
@@ -184,7 +187,7 @@
                 </div>
                 
                 <div class="beh-item">
-                    <div class="beh-item-title">Novel Objects</div>
+                    <div class="beh-item-title">Novel Obj.</div>
                     <div class="radio-group-col">
                         <label><input type="radio" name="b-hum-novel" value="N/A" checked> N/A</label>
                         <label><input type="radio" name="b-hum-novel" value="Yes"> Yes</label>
@@ -196,15 +199,16 @@
                     <div class="beh-item-title">Proximity</div>
                     <div class="radio-group-col">
                         <label><input type="radio" name="b-hum-prox" value="N/A" checked> N/A</label>
-                        <label><input type="radio" name="b-hum-prox" value="Direct Contact"> Direct Cont.</label>
-                        <label><input type="radio" name="b-hum-prox" value="Inside Enclosure"> Inside Enc.</label>
-                        <label><input type="radio" name="b-hum-prox" value="Outside Enclosure"> Outside Enc.</label>
+                        <!-- Notice the display text is shortened, but the 'value' sent to Google Sheets remains full -->
+                        <label><input type="radio" name="b-hum-prox" value="Direct Contact"> Direct</label>
+                        <label><input type="radio" name="b-hum-prox" value="Inside Enclosure"> Inside</label>
+                        <label><input type="radio" name="b-hum-prox" value="Outside Enclosure"> Outside</label>
                     </div>
                 </div>
-
-                <div class="beh-item" style="grid-column: span 2;">
-                    <label class="beh-check-row"><input type="checkbox" id="b-hum-vis"> Visitors Present</label>
-                </div>
+            </div>
+            
+            <div class="beh-item" style="width: 100%; margin-bottom: 20px;">
+                <label class="beh-check-row"><input type="checkbox" id="b-hum-vis"> Visitors Present</label>
             </div>
 
             <div id="beh-targets" class="checkbox-group"></div>
