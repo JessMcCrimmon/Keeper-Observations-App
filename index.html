@@ -20,6 +20,8 @@
         
         .session-summary { background: #e8f8f5; border: 2px solid #2ecc71; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; font-weight: bold; color: #2c3e50; text-align: center; }
         
+        .target-box { background: #ffffff; border: 2px solid #bdc3c7; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+        
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         
         @keyframes pulse-green { 0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); } 100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); } }
@@ -66,23 +68,23 @@
         <label>Observer ID</label>
         <input type="text" id="observerId" placeholder="Initials or ID">
         
-        <label>Observation Target</label>
-        <select id="obsMode" onchange="toggleKeeperInput()">
-            <option value="Whole Team">Whole Team</option>
-            <option value="Specific Keeper">Specific Keeper</option>
-        </select>
-        
-        <div id="keeperInputZone" style="display: none;">
-            <label>Keeper Initials / ID</label>
-            <input type="text" id="targetKeeper" placeholder="e.g., AB">
-        </div>
-        
         <button class="start-btn" id="begin-btn">Begin Session</button>
         <button class="clear-btn" id="clear-btn" onclick="requestClear()">Clear Synced Data</button>
     </div>
 
     <div id="app" class="container" style="display: none;">
         <div id="session-summary" class="session-summary"></div>
+        
+        <div class="target-box">
+            <div class="section-title">Current Target (Change Anytime)</div>
+            <select id="obsMode" onchange="toggleKeeperInput()">
+                <option value="Whole Team">Whole Team</option>
+                <option value="Specific Keeper">Specific Keeper</option>
+            </select>
+            <div id="keeperInputZone" style="display: none; margin-bottom: 0;">
+                <input type="text" id="targetKeeper" placeholder="Keeper Initials (e.g., AB)" oninput="updateLiveTargetState()">
+            </div>
+        </div>
         
         <div class="section-title">Currently Running (Tap to Stop)</div>
         <div id="active-zone" class="active-zone"></div>
@@ -119,7 +121,7 @@
         
         const interruptions = ["Visitor Interaction", "Radio Call", "Equipment Issue", "Other"];
 
-        let session = { id: "", team: "", observer: "", mode: "", targetKeeper: "" };
+        let session = { id: "", team: "", observer: "", liveMode: "Whole Team", liveTarget: "" };
         let logs = []; 
         let activeTasks = {}; 
         let activeInterruption = null; 
@@ -133,6 +135,19 @@
         function toggleKeeperInput() {
             const mode = document.getElementById('obsMode').value;
             document.getElementById('keeperInputZone').style.display = mode === 'Specific Keeper' ? 'block' : 'none';
+            updateLiveTargetState();
+        }
+        
+        function updateLiveTargetState() {
+            session.liveMode = document.getElementById('obsMode').value;
+            session.liveTarget = document.getElementById('targetKeeper').value;
+            saveState();
+        }
+        
+        function getCurrentTargetData() {
+            let mode = document.getElementById('obsMode').value;
+            let target = mode === 'Specific Keeper' ? (document.getElementById('targetKeeper').value || "Unknown") : "N/A";
+            return { mode: mode, target: target };
         }
 
         // --- THE AUTO-SAVE ENGINE ---
@@ -153,8 +168,13 @@
                     activeTasks = vault.a || {};
                     activeInterruption = vault.i || null;
                     
-                    let targetDisplay = session.mode === 'Specific Keeper' ? session.targetKeeper : 'Whole Team';
-                    document.getElementById('session-summary').innerText = `Team: ${session.team} | Obs: ${session.observer} | Target: ${targetDisplay}`;
+                    document.getElementById('session-summary').innerText = `Team: ${session.team}  |  Obs: ${session.observer}`;
+                    
+                    // Restore live dropdown states
+                    document.getElementById('obsMode').value = session.liveMode || "Whole Team";
+                    document.getElementById('targetKeeper').value = session.liveTarget || "";
+                    toggleKeeperInput();
+                    
                     document.getElementById('setup').style.display = 'none';
                     document.getElementById('app').style.display = 'block';
                     
@@ -294,13 +314,15 @@
             session.id = new Date().toISOString();
             session.team = document.getElementById('teamName').value || "Unknown";
             session.observer = document.getElementById('observerId').value || "Unknown";
-            session.mode = document.getElementById('obsMode').value;
-            session.targetKeeper = session.mode === 'Specific Keeper' ? (document.getElementById('targetKeeper').value || "Unknown") : "N/A";
             
-            let targetDisplay = session.mode === 'Specific Keeper' ? session.targetKeeper : 'Whole Team';
-            document.getElementById('session-summary').innerText = `Team: ${session.team} | Obs: ${session.observer} | Target: ${targetDisplay}`;
+            document.getElementById('session-summary').innerText = `Team: ${session.team}  |  Obs: ${session.observer}`;
             document.getElementById('setup').style.display = 'none';
             document.getElementById('app').style.display = 'block';
+            
+            // Reset live targets for new session
+            document.getElementById('obsMode').value = "Whole Team";
+            document.getElementById('targetKeeper').value = "";
+            toggleKeeperInput();
             
             saveState(); 
             updateNoteTargets();
@@ -370,7 +392,14 @@
             if (activeTasks[taskName]) return; 
             if (Object.keys(activeTasks).length >= 2) return alert("Maximum 2 concurrent tasks allowed.");
             
-            activeTasks[taskName] = { start: Date.now() };
+            // Capture the target context exactly when the task starts
+            let targetData = getCurrentTargetData();
+            
+            activeTasks[taskName] = { 
+                start: Date.now(),
+                obsMode: targetData.mode,
+                targetKeeper: targetData.target
+            };
             
             renderActiveZone();
             updateNoteTargets();
@@ -387,10 +416,11 @@
             let payload = {
                 dataType: "task",
                 sessionId: session.id,
+                timestamp: new Date().toISOString(),
                 team: session.team,
                 observer: session.observer,
-                obsMode: session.mode,
-                targetKeeper: session.targetKeeper,
+                obsMode: taskData.obsMode,
+                targetKeeper: taskData.targetKeeper,
                 task: taskName,
                 taskStart: new Date(taskData.start).toISOString(),
                 taskEnd: new Date(now).toISOString(),
@@ -415,7 +445,11 @@
                 let btn = document.createElement('button');
                 btn.className = 'pinned-task';
                 btn.id = 'active-' + task.replace(/[^a-zA-Z0-9]/g, '');
-                btn.innerHTML = `<strong>${task}</strong><br><span style="font-size:12px; font-weight:normal;" id="clock-${task.replace(/[^a-zA-Z0-9]/g, '')}">00:00</span>`;
+                
+                // Show the user who this task is attributed to if they switch modes
+                let contextDisplay = activeTasks[task].obsMode === 'Specific Keeper' ? ` (${activeTasks[task].targetKeeper})` : '';
+                
+                btn.innerHTML = `<strong>${task}${contextDisplay}</strong><br><span style="font-size:12px; font-weight:normal;" id="clock-${task.replace(/[^a-zA-Z0-9]/g, '')}">00:00</span>`;
                 btn.onclick = () => stopTask(task);
                 zone.appendChild(btn);
             });
@@ -452,8 +486,8 @@
                     sessionId: session.id,
                     team: session.team,
                     observer: session.observer,
-                    obsMode: session.mode,
-                    targetKeeper: session.targetKeeper,
+                    obsMode: activeInterruption.obsMode,
+                    targetKeeper: activeInterruption.targetKeeper,
                     intStart: new Date(activeInterruption.start).toISOString(),
                     intEnd: new Date(now).toISOString(),
                     intType: activeInterruption.name,
@@ -465,7 +499,14 @@
                 btn.innerText = intName; 
                 activeInterruption = null;
             } else {
-                activeInterruption = { name: intName, start: now };
+                // Capture the target context exactly when the interruption starts
+                let targetData = getCurrentTargetData();
+                activeInterruption = { 
+                    name: intName, 
+                    start: now,
+                    obsMode: targetData.mode,
+                    targetKeeper: targetData.target
+                };
                 btn.classList.add('active-int');
             }
             updateNoteTargets();
@@ -506,13 +547,16 @@
 
             if (checkedBoxes.length === 0) isGeneral = true; 
 
+            // Live grab of the current target state for the note
+            let targetData = getCurrentTargetData();
+
             let payload = {
                 dataType: "note",
                 sessionId: session.id,
                 team: session.team,
                 observer: session.observer,
-                obsMode: session.mode,
-                targetKeeper: session.targetKeeper,
+                obsMode: targetData.mode,
+                targetKeeper: targetData.target,
                 time: noteTime,
                 noteText: note,
                 associatedEvent: isGeneral ? "" : eventNames.join(" | "),
@@ -542,7 +586,7 @@
 
             activeTasks = {};
             activeInterruption = null;
-            session = { id: "", team: "", observer: "", mode: "", targetKeeper: "" };
+            session = { id: "", team: "", observer: "", liveMode: "Whole Team", liveTarget: "" };
             
             saveState();
             endArmed = false;
