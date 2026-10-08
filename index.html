@@ -20,8 +20,8 @@
         
         .session-summary { background: #e8f8f5; border: 2px solid #2ecc71; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; font-weight: bold; color: #2c3e50; text-align: center; }
 
-        .logo-container { display: flex; justify-content: center; align-items: center; gap: 20px; margin: 20px 0; }
-        .logo-container img { max-height: 80px; width: auto; object-fit: contain; }
+        .logo-container { display: flex; justify-content: center; align-items: center; gap: 5px; margin: 20px 0; }
+        .logo-container img { max-height: 130px; width: auto; object-fit: contain; }
         
         .target-box { background: #ffffff; border: 2px solid #bdc3c7; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
         
@@ -73,13 +73,7 @@
     <div id="storage-meter" class="storage-meter">Storage: Calculating...</div>
 
     <div id="setup" class="container" style="display: block;">
-        
-       <!-- LOGO SECTION STARTS HERE -->
-        <div class="logo-container">
-            <img src="AWSC logo.png" alt="AWSC Logo">
-            <img src="Uni logo.png" alt="University Logo">
-        </div>
-        <!-- LOGO SECTION ENDS HERE -->
+    
 
         <label>Team Name</label>
         <input type="text" id="teamName" placeholder="e.g., Primates Team">        
@@ -92,6 +86,12 @@
         
         <button class="start-btn" id="begin-btn">Begin Session</button>
         <button class="clear-btn" id="clear-btn" onclick="requestClear()">Clear Synced Data</button>
+               <!-- LOGO SECTION STARTS HERE -->
+        <div class="logo-container">
+            <img src="AWSC logo.png" alt="AWSC Logo">
+            <img src="Uni logo.png" alt="University Logo">
+        </div>
+        <!-- LOGO SECTION ENDS HERE -->
     </div>
 
     <div id="app" class="container" style="display: none;">
