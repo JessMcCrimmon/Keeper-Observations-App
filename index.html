@@ -11,7 +11,7 @@
         .header { background: #2c3e50; color: white; padding: 15px; text-align: center; font-size: 20px; font-weight: bold; }
         .container { padding: 15px; }
         
-        .storage-meter { font-size: 12px; color: #7f8c8d; text-align: center; margin-bottom: 15px; font-weight: bold; background: #ecf0f1; padding: 8px; border-radius: 6px; }
+        .storage-meter { font-size: 12px; color: #7f8c8d; text-align: center; margin: 15px; font-weight: bold; background: #ecf0f1; padding: 8px; border-radius: 6px; }
         
         input[type="text"], input[type="date"], select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; background: white; }
         button { width: 100%; padding: 15px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
@@ -58,9 +58,11 @@
 <body>
 
     <div class="header">Keeper Observations</div>
+    
+    <!-- MOVED OUTSIDE THE SETUP SCREEN SO IT IS ALWAYS VISIBLE -->
+    <div id="storage-meter" class="storage-meter">Storage: Calculating...</div>
 
     <div id="setup" class="container" style="display: block;">
-        <div id="storage-meter" class="storage-meter">Storage: Calculating...</div>
         
         <label>Team Name</label>
         <input type="text" id="teamName" placeholder="e.g., Primates Team">
