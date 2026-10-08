@@ -18,18 +18,17 @@
         
         .start-btn { background: #3498db; color: white; margin-top: 10px; }
         
-        .session-summary { background: #ede7f6; border: 2px solid #b39ddb; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; color: #311b92; text-align: center; width: 80%; margin: 0 auto 20px auto; }
+        .session-summary { background: #ede7f6; border: 2px solid #b39ddb; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: bold; color: #311b92; text-align: center; width: fit-content; margin: 0 auto 20px auto; }
         
-        .logo-container { display: flex; justify-content: center; align-items: center; gap: 5px; margin: 20px 0; }
-        .logo-container img { max-height: 130px; width: auto; object-fit: contain; }
+        .target-box { background: #ffffff; border: 2px solid #bdc3c7; border-radius: 8px; padding: 10px 15px; width: 80%; margin: 0 auto 20px auto; text-align: center; }
         
-        .target-box { background: #ffffff; border: 2px solid #bdc3c7; border-radius: 8px; padding: 10px 15px; width: 80%; margin: 0 auto 20px auto; text-align: center; }   
-        
-        .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 20px; }        
+        /* Updated Grid for 3-in-a-row categories */
+        .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 20px; }
         
         @keyframes pulse-green { 0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); } 100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); } }
         @keyframes pulse-orange { 0% { box-shadow: 0 0 0 0 rgba(225, 112, 85, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(225, 112, 85, 0); } 100% { box-shadow: 0 0 0 0 rgba(225, 112, 85, 0); } }
 
+        /* Updated Buttons */
         .cat-btn { background: #34495e; color: white; border: 1px solid #2c3e50; padding: 25px 2px; font-size: 13px; line-height: 1.2; grid-column: span 2; }
         .task-btn { background: #ffffff; color: #333; border: 1px solid #ddd; grid-column: span 3; }
         .back-btn { background: #bdc3c7; color: #333; grid-column: span 6; margin-bottom: 10px; }
@@ -50,7 +49,12 @@
         
         .beh-label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #555; }
         .beh-input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
-        .beh-select { margin-bottom: 15px; }
+        
+        /* New Radio Group styles for one-tap selections */
+        .radio-group { margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 15px; font-size: 15px; }
+        .radio-group label { display: flex; align-items: center; cursor: pointer; background: #f4f4f9; padding: 8px 12px; border-radius: 6px; border: 1px solid #eee; }
+        .radio-group input[type="radio"] { width: 20px; height: 20px; margin: 0 8px 0 0; }
+        
         .beh-check-row { display: flex; align-items: center; margin-bottom: 15px; font-size: 15px; }
         .beh-check-row input { width: 20px; height: 20px; margin: 0 10px 0 0; }
         
@@ -64,6 +68,9 @@
 
         .end-btn { background: #7f8c8d; color: white; margin-top: 10px; margin-bottom: 20px; }
         .clear-btn { background: #bdc3c7; color: #333; margin-top: 20px; font-size: 14px; }
+        
+        .logo-container { display: flex; justify-content: center; align-items: center; gap: 5px; margin: 20px 0; }
+        .logo-container img { max-height: 130px; width: auto; object-fit: contain; }
     </style>
 </head>
 <body>
@@ -82,13 +89,11 @@
         
         <button class="start-btn" id="begin-btn">Begin Session</button>
         <button class="clear-btn" id="clear-btn" onclick="requestClear()">Clear Synced Data</button>
-
-        <!-- LOGO SECTION -->
+        
         <div class="logo-container">
-            <img src="AWSC logo.png" alt="Zoo Logo">
-            <img src="Uni logo.png" alt="University Logo">
+            <img src="AWSC logo.png" alt="Logo 1">
+            <img src="Uni logo.png" alt="Logo 2">
         </div>
-
     </div>
 
     <div id="app" class="container" style="display: none;">
@@ -128,51 +133,51 @@
             <input type="text" id="b-species" class="beh-input" placeholder="e.g., Sumatran Tiger">
 
             <label class="beh-label">Movement / Proximity to Keeper</label>
-            <select id="b-anim-move" class="beh-select">
-                <option value="N/A">Select...</option>
-                <option value="Avoidance">Avoidance</option>
-                <option value="Approach < 0.5m">Approach &lt; 0.5m</option>
-            </select>
+            <div class="radio-group">
+                <label><input type="radio" name="b-anim-move" value="N/A" checked> N/A</label>
+                <label><input type="radio" name="b-anim-move" value="Avoidance"> Avoidance</label>
+                <label><input type="radio" name="b-anim-move" value="Approach < 0.5m"> Approach &lt; 0.5m</label>
+            </div>
             
             <label class="beh-label">Vocalisations</label>
-            <select id="b-anim-vocal" class="beh-select">
-                <option value="N/A">Select...</option>
-                <option value="Yes">Yes</option>
-                <option value="No">No</option>
-            </select>
+            <div class="radio-group">
+                <label><input type="radio" name="b-anim-vocal" value="N/A" checked> N/A</label>
+                <label><input type="radio" name="b-anim-vocal" value="Yes"> Yes</label>
+                <label><input type="radio" name="b-anim-vocal" value="No"> No</label>
+            </div>
             
             <label class="beh-check-row"><input type="checkbox" id="b-anim-vig"> Vigilance observed</label>
             <label class="beh-check-row"><input type="checkbox" id="b-anim-vis"> Animal Not Visible</label>
 
             <h4>Human Behaviour</h4>
             <label class="beh-label">Speed of Movement</label>
-            <select id="b-hum-speed" class="beh-select">
-                <option value="N/A">Select...</option>
-                <option value="Slow">Slow</option>
-                <option value="Fast">Fast</option>
-            </select>
+            <div class="radio-group">
+                <label><input type="radio" name="b-hum-speed" value="N/A" checked> N/A</label>
+                <label><input type="radio" name="b-hum-speed" value="Slow"> Slow</label>
+                <label><input type="radio" name="b-hum-speed" value="Fast"> Fast</label>
+            </div>
             
             <label class="beh-label">Noise Level</label>
-            <select id="b-hum-noise" class="beh-select">
-                <option value="N/A">Select...</option>
-                <option value="Quiet">Quiet</option>
-                <option value="Loud">Loud</option>
-            </select>
+            <div class="radio-group">
+                <label><input type="radio" name="b-hum-noise" value="N/A" checked> N/A</label>
+                <label><input type="radio" name="b-hum-noise" value="Quiet"> Quiet</label>
+                <label><input type="radio" name="b-hum-noise" value="Loud"> Loud</label>
+            </div>
             
             <label class="beh-label">Novel Objects to Animal</label>
-            <select id="b-hum-novel" class="beh-select">
-                <option value="N/A">Select...</option>
-                <option value="Yes">Yes</option>
-                <option value="No">No</option>
-            </select>
+            <div class="radio-group">
+                <label><input type="radio" name="b-hum-novel" value="N/A" checked> N/A</label>
+                <label><input type="radio" name="b-hum-novel" value="Yes"> Yes</label>
+                <label><input type="radio" name="b-hum-novel" value="No"> No</label>
+            </div>
             
             <label class="beh-label">Proximity to Animal</label>
-            <select id="b-hum-prox" class="beh-select">
-                <option value="N/A">Select...</option>
-                <option value="Direct Contact">Direct Contact</option>
-                <option value="Inside Enclosure">Inside Enclosure</option>
-                <option value="Outside Enclosure">Outside Enclosure</option>
-            </select>
+            <div class="radio-group">
+                <label><input type="radio" name="b-hum-prox" value="N/A" checked> N/A</label>
+                <label><input type="radio" name="b-hum-prox" value="Direct Contact"> Direct Contact</label>
+                <label><input type="radio" name="b-hum-prox" value="Inside Enclosure"> Inside Enclosure</label>
+                <label><input type="radio" name="b-hum-prox" value="Outside Enclosure"> Outside Enclosure</label>
+            </div>
 
             <label class="beh-check-row"><input type="checkbox" id="b-hum-vis"> Visitors Present</label>
 
@@ -243,7 +248,7 @@
                     activeTasks = vault.a || {};
                     activeInterruption = vault.i || null;
                     
-                    document.getElementById('session-summary').innerText = `Team: ${session.team}  |  Observer: ${session.observer}`; 
+                    document.getElementById('session-summary').innerText = `Team: ${session.team}  |  Observer: ${session.observer}`;
                     
                     document.getElementById('obsMode').value = session.liveMode || "Whole Team";
                     document.getElementById('targetKeeper').value = session.liveTarget || "";
@@ -388,7 +393,6 @@
             session.observer = document.getElementById('observerId').value || "Unknown";
             
             document.getElementById('session-summary').innerText = `Team: ${session.team}  |  Observer: ${session.observer}`;
-            
             document.getElementById('setup').style.display = 'none';
             document.getElementById('app').style.display = 'block';
             
@@ -631,6 +635,14 @@
             let eventData = getCheckedEventData('beh-targets');
             let targetData = getCurrentTargetData();
             
+            // Read values from the checked radio buttons instead of select dropdowns
+            let moveVal = document.querySelector('input[name="b-anim-move"]:checked').value;
+            let vocalVal = document.querySelector('input[name="b-anim-vocal"]:checked').value;
+            let speedVal = document.querySelector('input[name="b-hum-speed"]:checked').value;
+            let noiseVal = document.querySelector('input[name="b-hum-noise"]:checked').value;
+            let novelVal = document.querySelector('input[name="b-hum-novel"]:checked').value;
+            let proxVal = document.querySelector('input[name="b-hum-prox"]:checked').value;
+            
             let payload = {
                 dataType: "behaviour",
                 sessionId: session.id,
@@ -641,35 +653,34 @@
                 time: new Date().toISOString(),
                 associatedEvent: eventData.names,
                 species: document.getElementById('b-species').value || "N/A",
-                animMove: document.getElementById('b-anim-move').value,
-                animVocal: document.getElementById('b-anim-vocal').value,
+                animMove: moveVal,
+                animVocal: vocalVal,
                 animVig: document.getElementById('b-anim-vig').checked ? "Yes" : "No",
                 animVis: document.getElementById('b-anim-vis').checked ? "Not Visible" : "Visible",
-                humSpeed: document.getElementById('b-hum-speed').value,
-                humNoise: document.getElementById('b-hum-noise').value,
-                humNovel: document.getElementById('b-hum-novel').value,
-                humProx: document.getElementById('b-hum-prox').value,
+                humSpeed: speedVal,
+                humNoise: noiseVal,
+                humNovel: novelVal,
+                humProx: proxVal,
                 humVis: document.getElementById('b-hum-vis').checked ? "Yes" : "No",
                 synced: false
             };
             
             logs.push(payload);
             
-            // Visual feedback
             let btn = document.getElementById('btn-save-beh');
             btn.innerText = "✅ Saved!";
             setTimeout(() => { btn.innerText = "Save Behaviour"; }, 2000);
             
-            // Reset form
+            // Reset form fields back to N/A
             document.getElementById('b-species').value = "";
-            document.getElementById('b-anim-move').value = "N/A";
-            document.getElementById('b-anim-vocal').value = "N/A";
+            document.querySelector('input[name="b-anim-move"][value="N/A"]').checked = true;
+            document.querySelector('input[name="b-anim-vocal"][value="N/A"]').checked = true;
             document.getElementById('b-anim-vig').checked = false;
             document.getElementById('b-anim-vis').checked = false;
-            document.getElementById('b-hum-speed').value = "N/A";
-            document.getElementById('b-hum-noise').value = "N/A";
-            document.getElementById('b-hum-novel').value = "N/A";
-            document.getElementById('b-hum-prox').value = "N/A";
+            document.querySelector('input[name="b-hum-speed"][value="N/A"]').checked = true;
+            document.querySelector('input[name="b-hum-noise"][value="N/A"]').checked = true;
+            document.querySelector('input[name="b-hum-novel"][value="N/A"]').checked = true;
+            document.querySelector('input[name="b-hum-prox"][value="N/A"]').checked = true;
             document.getElementById('b-hum-vis').checked = false;
             
             updateChecklists(); 
