@@ -46,6 +46,7 @@
         .form-container h4 { margin: 0 0 10px 0; color: #34495e; font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
         
         .beh-label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #555; }
+        .beh-input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
         .beh-select { margin-bottom: 15px; }
         .beh-check-row { display: flex; align-items: center; margin-bottom: 15px; font-size: 15px; }
         .beh-check-row input { width: 20px; height: 20px; margin: 0 10px 0 0; }
@@ -103,9 +104,19 @@
         <div class="section-title">Interruptions (Independent Timer)</div>
         <div class="grid" id="int-grid"></div>
 
+        <div class="section-title">Log a Note</div>
+        <div class="form-container note-container">
+            <div id="note-targets" class="checkbox-group"></div>
+            <textarea id="inline-note" placeholder="Tap here to type a note..."></textarea>
+            <button class="log-btn" onclick="saveInlineNote()">Log Note</button>
+        </div>
+
         <div class="section-title">Log Behaviour Snapshot</div>
         <div class="form-container">
             <h4>Animal Behaviour</h4>
+            <label class="beh-label">Target Species</label>
+            <input type="text" id="b-species" class="beh-input" placeholder="e.g., Sumatran Tiger">
+
             <label class="beh-label">Movement / Proximity to Keeper</label>
             <select id="b-anim-move" class="beh-select">
                 <option value="N/A">Select...</option>
@@ -157,13 +168,6 @@
 
             <div id="beh-targets" class="checkbox-group"></div>
             <button class="log-btn" id="btn-save-beh" onclick="saveBehaviour()">Save Behaviour</button>
-        </div>
-
-        <div class="section-title">Log a Note</div>
-        <div class="form-container note-container">
-            <div id="note-targets" class="checkbox-group"></div>
-            <textarea id="inline-note" placeholder="Tap here to type a note..."></textarea>
-            <button class="log-btn" onclick="saveInlineNote()">Log Note</button>
         </div>
 
         <div class="section-title">Session Actions</div>
@@ -625,6 +629,7 @@
                 targetKeeper: targetData.target,
                 time: new Date().toISOString(),
                 associatedEvent: eventData.names,
+                species: document.getElementById('b-species').value || "N/A",
                 animMove: document.getElementById('b-anim-move').value,
                 animVocal: document.getElementById('b-anim-vocal').value,
                 animVig: document.getElementById('b-anim-vig').checked ? "Yes" : "No",
@@ -645,6 +650,7 @@
             setTimeout(() => { btn.innerText = "Save Behaviour"; }, 2000);
             
             // Reset form
+            document.getElementById('b-species').value = "";
             document.getElementById('b-anim-move').value = "N/A";
             document.getElementById('b-anim-vocal').value = "N/A";
             document.getElementById('b-anim-vig').checked = false;
