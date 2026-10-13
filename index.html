@@ -73,7 +73,7 @@
         .checkbox-group label { display: block; margin-bottom: 8px; cursor: pointer; }
         .checkbox-group input[type="checkbox"] { width: auto; margin-right: 10px; transform: scale(1.2); }
 
-        .end-btn { background: #7f8c8d; color: white; margin-top: 10px; margin-bottom: 20px; }
+        .end-btn { background: #f5b7b1; color: #78281f; border: 1px solid #e6b0aa; margin-top: 10px; margin-bottom: 20px; }
         .clear-btn { background: #bdc3c7; color: #333; margin-top: 20px; font-size: 14px; }
         
         .logo-container { display: flex; justify-content: center; align-items: center; gap: 5px; margin: 20px 0; }
@@ -426,23 +426,23 @@
                 if(e) e.preventDefault();
                 if (!endArmed) {
                     endArmed = true;
-                    endBtn.style.background = '#e74c3c';
+                    endBtn.style.background = '#c0392b'; // Darker red when armed
+                    endBtn.style.color = 'white';
                     endBtn.innerText = "⚠️ TAP AGAIN TO CONFIRM END";
                     endArmTimer = setTimeout(() => {
                         endArmed = false;
-                        endBtn.style.background = '#7f8c8d';
+                        endBtn.style.background = ''; // Resets to your CSS red
+                        endBtn.style.color = '';
                         endBtn.innerText = "End Session";
                     }, 5000);
                 } else {
                     clearTimeout(endArmTimer);
-                    endBtn.style.background = '#7f8c8d';
+                    endBtn.style.background = ''; 
+                    endBtn.style.color = '';
                     endBtn.innerText = "Closing...";
                     endSession();
                 }
             };
-            endBtn.addEventListener('touchstart', triggerExport, {passive: false});
-            endBtn.addEventListener('click', triggerExport);
-        };
 
         function startSession() {
             if (document.getElementById('app').style.display === 'block') return;
