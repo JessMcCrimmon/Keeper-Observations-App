@@ -54,7 +54,6 @@
         
         .beh-item { background: #f4f4f9; padding: 8px 2px; border-radius: 8px; border: 1px solid #e0e0e0; display: flex; flex-direction: column; align-items: center; }
         
-        /* UPDATED LARGER SIZES FOR BOTH BEHAVIOUR SECTIONS */
         .beh-item-title { font-size: 14px; font-weight: bold; color: #2c3e50; margin-bottom: 8px; border-bottom: 1px solid #ccc; padding-bottom: 4px; text-align: center; line-height: 1.1; width: 90%; }
         .radio-group-col { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; width: fit-content; }
         .radio-group-col label { display: flex; align-items: center; font-size: 13px; cursor: pointer; margin: 0; color: #444; }
@@ -66,6 +65,9 @@
         .note-container textarea { width: 100%; height: 80px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; font-family: inherit; resize: none; box-sizing: border-box; background: #f9f9f9; margin-bottom: 10px; }
         .note-container textarea:focus { outline: none; border-color: #3498db; }
         .log-btn { background: #a9dfbf; color: #145a32; font-weight: bold; margin-top: 10px; border: 1px solid #7dcea0; }
+        
+        /* New button style to open the Behaviour sub-screen */
+        .open-beh-btn { background: #d7bde2; color: #4a235a; border: 1px solid #b39ddb; margin-bottom: 25px; padding: 18px; font-size: 17px; }
         
         .checkbox-group { margin-bottom: 15px; font-size: 15px; background: #f4f4f9; padding: 10px; border-radius: 6px; border: 1px solid #eee; }
         .checkbox-group label { display: block; margin-bottom: 8px; cursor: pointer; }
@@ -89,6 +91,7 @@
         </div>
     </div>
 
+    <!-- SETUP SCREEN -->
     <div id="setup" class="container" style="display: block;">
         
         <label>Team Name</label>
@@ -106,6 +109,7 @@
         </div>
     </div>
 
+    <!-- MAIN CONTINUOUS OBSERVATION SCREEN -->
     <div id="app" class="container" style="display: none;">
         
         <div class="target-box">
@@ -134,6 +138,18 @@
             <textarea id="inline-note" placeholder="Tap here to type a note..."></textarea>
             <button class="log-btn" onclick="saveInlineNote()">Log Note</button>
         </div>
+
+        <div class="section-title">Opportunistic Monitoring</div>
+        <button class="open-beh-btn" onclick="openBehaviourPage()">Log Behavioural Data</button>
+
+        <div class="section-title">Session Actions</div>
+        <button class="undo-btn" onclick="undoActive()">Undo Last Task</button>
+        <button class="end-btn" id="end-btn">End Session</button>
+    </div>
+
+    <!-- OPPORTUNISTIC BEHAVIOUR SNAPSHOT SCREEN -->
+    <div id="beh-page" class="container" style="display: none;">
+        <button class="back-btn" style="margin-bottom: 15px;" onclick="closeBehaviourPage()">← Back to Main Screen</button>
 
         <div class="section-title">Log Behaviour Snapshot</div>
         <div class="form-container">
@@ -215,10 +231,6 @@
             <div id="beh-targets" class="checkbox-group"></div>
             <button class="log-btn" id="btn-save-beh" onclick="saveBehaviour()">Save Behaviour</button>
         </div>
-
-        <div class="section-title">Session Actions</div>
-        <button class="undo-btn" onclick="undoActive()">Undo Last Task</button>
-        <button class="end-btn" id="end-btn">End Session</button>
     </div>
 
     <script>
@@ -243,6 +255,19 @@
         let endArmTimer = null;
         let clearStage = 0;
         let clearTimer = null;
+
+        function openBehaviourPage() {
+            updateChecklists();
+            document.getElementById('app').style.display = 'none';
+            document.getElementById('beh-page').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function closeBehaviourPage() {
+            document.getElementById('beh-page').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
 
         function toggleKeeperInput() {
             const mode = document.getElementById('obsMode').value;
@@ -287,6 +312,7 @@
                     toggleKeeperInput();
                     
                     document.getElementById('setup').style.display = 'none';
+                    document.getElementById('beh-page').style.display = 'none';
                     document.getElementById('app').style.display = 'block';
                     
                     renderActiveZone();
@@ -428,6 +454,7 @@
             document.getElementById('session-summary').style.display = 'block'; 
             
             document.getElementById('setup').style.display = 'none';
+            document.getElementById('beh-page').style.display = 'none';
             document.getElementById('app').style.display = 'block';
             
             document.getElementById('obsMode').value = "Whole Team";
@@ -702,7 +729,6 @@
             
             let btn = document.getElementById('btn-save-beh');
             btn.innerText = "✅ Saved!";
-            setTimeout(() => { btn.innerText = "Save Behaviour"; }, 2000);
             
             document.getElementById('b-species').value = "";
             document.querySelector('input[name="b-anim-move"][value="N/A"]').checked = true;
@@ -719,6 +745,12 @@
             document.activeElement.blur(); 
             saveState(); 
             syncEngine(); 
+
+            // Automatically return to main screen after brief confirmation
+            setTimeout(() => { 
+                btn.innerText = "Save Behaviour"; 
+                closeBehaviourPage();
+            }, 600);
         }
 
         function saveInlineNote() {
@@ -771,6 +803,7 @@
             document.getElementById('session-summary').style.display = 'none'; 
             
             document.getElementById('app').style.display = 'none';
+            document.getElementById('beh-page').style.display = 'none';
             document.getElementById('setup').style.display = 'block';
             
             syncEngine();
