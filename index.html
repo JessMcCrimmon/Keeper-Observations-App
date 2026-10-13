@@ -136,15 +136,15 @@
         <div class="form-container note-container">
             <div id="note-targets" class="checkbox-group"></div>
             <textarea id="inline-note" placeholder="Tap here to type a note..."></textarea>
-            <button class="log-btn" onclick="saveInlineNote()">Log Note</button>
+            <button class="log-btn" onclick="saveInlineNote()">✏️ Log Note</button>
         </div>
 
         <div class="section-title">Opportunistic Monitoring</div>
         <button class="open-beh-btn" onclick="openBehaviourPage()">Log Behavioural Data</button>
 
         <div class="section-title">Session Actions</div>
-        <button class="undo-btn" onclick="undoActive()">Undo Last Task</button>
-        <button class="end-btn" id="end-btn">End Session</button>
+        <button class="undo-btn" onclick="undoActive()">⏪ Undo Last Task</button>
+        <button class="end-btn" id="end-btn">🛑 End Session</button>
     </div>
 
     <!-- OPPORTUNISTIC BEHAVIOUR SNAPSHOT SCREEN -->
@@ -435,7 +435,7 @@
                         endArmed = false;
                         endBtn.style.background = '';
                         endBtn.style.color = '';
-                        endBtn.innerText = "End Session";
+                        endBtn.innerText = "🛑 End Session";
                     }, 5000);
                 } else {
                     clearTimeout(endArmTimer);
@@ -804,7 +804,7 @@
             saveState();
             endArmed = false;
 
-            document.getElementById('end-btn').innerText = "End Session";
+            document.getElementById('end-btn').innerText = "🛑 End Session";
             document.getElementById('session-summary').style.display = 'none'; 
             
             document.getElementById('app').style.display = 'none';
