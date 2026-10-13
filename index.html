@@ -66,14 +66,14 @@
         .note-container textarea:focus { outline: none; border-color: #3498db; }
         .log-btn { background: #a9dfbf; color: #145a32; font-weight: bold; margin-top: 10px; border: 1px solid #7dcea0; }
         
-        /* New button style to open the Behaviour sub-screen */
         .open-beh-btn { background: #d7bde2; color: #4a235a; border: 1px solid #b39ddb; margin-bottom: 25px; padding: 18px; font-size: 17px; }
         
         .checkbox-group { margin-bottom: 15px; font-size: 15px; background: #f4f4f9; padding: 10px; border-radius: 6px; border: 1px solid #eee; }
         .checkbox-group label { display: block; margin-bottom: 8px; cursor: pointer; }
         .checkbox-group input[type="checkbox"] { width: auto; margin-right: 10px; transform: scale(1.2); }
 
-        .end-btn { background: #f5b7b1; color: #78281f; border: 1px solid #e6b0aa; margin-top: 10px; margin-bottom: 20px; }
+        /* RED END SESSION BUTTON */
+        .end-btn { background: #e74c3c; color: white; margin-top: 10px; margin-bottom: 20px; }
         .clear-btn { background: #bdc3c7; color: #333; margin-top: 20px; font-size: 14px; }
         
         .logo-container { display: flex; justify-content: center; align-items: center; gap: 5px; margin: 20px 0; }
@@ -100,7 +100,7 @@
         <label>Observer ID</label>
         <input type="text" id="observerId" placeholder="Initials or ID">
         
-        <button class="start-btn" id="begin-btn">Begin Session</button>
+        <button class="start-btn" id="begin-btn" onclick="startSession()">Begin Session</button>
         <button class="clear-btn" id="clear-btn" onclick="requestClear()">Clear Synced Data</button>
         
         <div class="logo-container">
@@ -416,7 +416,9 @@
 
             const beginBtn = document.getElementById('begin-btn');
             const triggerSession = (e) => {
-                if(e) e.preventDefault(); document.activeElement.blur(); startSession();
+                if(e) e.preventDefault(); 
+                document.activeElement.blur(); 
+                startSession();
             };
             beginBtn.addEventListener('touchstart', triggerSession, {passive: false});
             beginBtn.addEventListener('click', triggerSession);
@@ -426,23 +428,26 @@
                 if(e) e.preventDefault();
                 if (!endArmed) {
                     endArmed = true;
-                    endBtn.style.background = '#c0392b'; // Darker red when armed
+                    endBtn.style.background = '#c0392b';
                     endBtn.style.color = 'white';
                     endBtn.innerText = "⚠️ TAP AGAIN TO CONFIRM END";
                     endArmTimer = setTimeout(() => {
                         endArmed = false;
-                        endBtn.style.background = ''; // Resets to your CSS red
+                        endBtn.style.background = '';
                         endBtn.style.color = '';
                         endBtn.innerText = "End Session";
                     }, 5000);
                 } else {
                     clearTimeout(endArmTimer);
-                    endBtn.style.background = ''; 
+                    endBtn.style.background = '';
                     endBtn.style.color = '';
                     endBtn.innerText = "Closing...";
                     endSession();
                 }
             };
+            endBtn.addEventListener('touchstart', triggerExport, {passive: false});
+            endBtn.addEventListener('click', triggerExport);
+        };
 
         function startSession() {
             if (document.getElementById('app').style.display === 'block') return;
@@ -463,6 +468,7 @@
             
             saveState(); 
             updateChecklists();
+            clearInterval(clockInterval);
             clockInterval = setInterval(updateClocks, 1000);
         }
 
@@ -746,7 +752,6 @@
             saveState(); 
             syncEngine(); 
 
-            // Automatically return to main screen after brief confirmation
             setTimeout(() => { 
                 btn.innerText = "Save Behaviour"; 
                 closeBehaviourPage();
